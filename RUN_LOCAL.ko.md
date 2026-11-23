@@ -8,6 +8,8 @@ Android 앱 3개(`핑거벨` · `핑거벨 문자` · `핑거벨 전화`)의 Flu
 
 ## 1. 백엔드 먼저 실행
 
+IntelliJ 실행 목록에서 **FingerBell (Start Server)**를 고르고 **Run**을 누릅니다. PowerShell에서는 아래 명령을 사용합니다.
+
 ```powershell
 .\run-backend.ps1
 ```
@@ -44,7 +46,7 @@ adb shell pm list packages | findstr fingersnap
 
 ### 기기 3대 기준 시연 준비
 
-1. `.\run-backend.ps1 -Lan`으로 백엔드를 실행합니다(포트 `8765` 방화벽 허용).
+1. IntelliJ의 **FingerBell (Start Server LAN)** 또는 `.\run-backend.ps1 -Lan`으로 백엔드를 실행합니다(포트 `8765` 방화벽 허용).
 2. 루트 `.env.local.json`에 `{"FINGERBELL_API_URL": "http://<PC_IP>:8765"}`를 설정합니다(형식은 `.env.example`).
 3. 어르신·보호자·시연 상대 기기 **마다 한 번씩** `.\run-android.ps1 -Device <기기ID> -NoResident`로 세 앱을 모두 설치합니다.
 
@@ -54,13 +56,29 @@ adb shell pm list packages | findstr fingersnap
 
 ## IntelliJ IDEA · Cursor / VS Code
 
-- **IntelliJ IDEA**: 실행 구성 **FingerBell (Android)** (`.run/FingerBell_Android.run.xml`)가 `run-android.ps1 -NoResident`를 실행합니다(`adb reverse` 포함). 기기 1대만 연결돼 있으면 그 기기로, 없으면 에뮬레이터로 바로 설치됩니다. 여러 기기가 연결돼 있으면 Script options에 `-Device <기기ID> -NoResident`를 넣으세요. (예전의 `adb reverse (8765)` 별도 실행 구성은 `run-android.ps1` 통합에 따라 제거했습니다.)
-- **Cursor / VS Code**: 로컬 `.vscode` 구성은 세 앱 일괄 설치로 바꾸지 않았으므로 터미널에서 `.\run-android.ps1`을 사용합니다. 백엔드는 따로 `run-backend.ps1`로 켜 두세요.
+IntelliJ에서 저장소 루트를 열고 **Flutter**, **Dart**, **Shell Script** 플러그인을 활성화합니다. **Settings → Languages & Frameworks → Flutter**에서 Flutter SDK 루트 경로를 지정합니다. 이 프로젝트에는 Dart 3.13.5 이상을 포함하는 Flutter SDK가 필요합니다.
+
+| 실행 구성 | 누를 버튼 | 동작 |
+| --- | --- | --- |
+| **FingerBell (Start Server)** | Run | 백엔드를 `127.0.0.1:8765`에서 시작 |
+| **FingerBell (Start Server LAN)** | Run | 같은 Wi-Fi의 기기가 PC의 `8765` 포트에 접속할 수 있도록 백엔드 시작 |
+| **FingerBell (Android)** | Run | 세 앱을 한 기기에 빌드·설치하고 핑거벨 실행 |
+| **FingerBell (Debug)** | Debug | 핑거벨의 `fingerbell` flavor를 `lib/main.dart`로 시작 |
+| **FingerBell SMS (Debug)** | Debug | 문자 앱의 `sms` flavor를 `lib/main_sms.dart`로 시작 |
+| **FingerBell Call (Debug)** | Debug | 전화 앱의 `call` flavor를 `lib/main_call.dart`로 시작 |
+| **FingerBell (Build APKs)** | Run | 기기 연결 없이 `packages/app/build/app/outputs/flutter-apk/`에 debug APK 3개 생성 |
+
+PC에 연결된 기기에서 시연하려면 **FingerBell (Start Server)**를 실행한 뒤 **FingerBell (Android)**로 세 앱을 설치합니다. 앱의 Dart 코드를 디버깅할 때는 툴바에서 부팅된 Android 에뮬레이터 또는 USB 디버깅을 허용한 실기기를 선택하고 해당 앱의 **Debug** 구성을 사용합니다. 중단점과 Hot Reload는 이 Flutter 디버그 세션에서 사용할 수 있습니다. 실행 직전에 `adb reverse (8765)`가 연결된 Android 기기에 로컬 API 포트를 연결합니다.
+
+여러 기기에 연결되어 있을 때 **FingerBell (Android)**의 **Script options**에 `-Device <기기ID> -NoResident`를 지정합니다. **Build APKs**와 일괄 설치는 루트 `.env.local.json`의 서버 주소를 사용합니다. 앱별 Flutter 구성에서 이 서버 주소를 쓰려면 **Additional run args**에 `--dart-define-from-file=../../.env.local.json`을 추가합니다. USB 연결에서 로컬 포트를 바꿨다면 `adb -s <기기ID> reverse tcp:<포트> tcp:<포트>`도 실행합니다.
+
+Cursor / VS Code에서는 터미널에서 `.\run-backend.ps1`과 `.\run-android.ps1 -NoResident`를 사용합니다.
 
 ## 문제 해결
 
 - **대상 앱이 설치되지 않았을 때 안내**: 핑거벨에서 `[문자]`·`[전화]`·`[보호자에게 전화]`·시연 버튼을 눌렀는데 `"핑거벨 문자 앱이 설치되어 있지 않아 열 수 없어요"` 또는 `"핑거벨 전화 앱이 설치되어 있지 않아 열 수 없어요"`가 뜨면 세 앱 중 일부만 설치된 상태입니다. `.\run-android.ps1 -NoResident`로 세 앱을 함께 다시 설치하세요.
-- **`adb reverse`가 풀렸거나 연결되지 않을 때**: 에뮬레이터나 USB 기기는 `127.0.0.1:8765`를 PC 백엔드로 연결하는 `adb reverse`가 필요합니다. `run-android.ps1`이 매번 설정하지만 USB를 다시 꽂았거나 ADB를 재시작했다면 `adb -s <기기ID> reverse tcp:8765 tcp:8765`를 실행하거나 `.\run-android.ps1`을 다시 실행하세요. Wi-Fi로 여러 기기를 연결할 때는 `adb reverse` 대신 `.\run-backend.ps1 -Lan`과 `.env.local.json`의 `FINGERBELL_API_URL`을 사용합니다.
+- **기기가 툴바에 보이지 않을 때** `adb devices`에서 실기기가 `unauthorized`이면 기기 잠금을 풀고 USB 디버깅을 허용하세요. 에뮬레이터가 계속 `offline`이면 종료한 뒤 Android Studio의 Device Manager에서 **Cold Boot**로 시작하세요.
+- **`adb reverse`가 풀렸거나 연결되지 않을 때**: USB를 다시 꽂았거나 ADB를 재시작했다면 Flutter 디버그 구성을 다시 시작하거나 `adb -s <기기ID> reverse tcp:8765 tcp:8765`를 실행하세요. Wi-Fi로 연결하는 시연에서는 `.\run-backend.ps1 -Lan`과 `.env.local.json`의 `FINGERBELL_API_URL`을 사용합니다.
 - **문자·전화 앱에 역할/설정이 바로 안 보일 때**: 문자·전화 앱은 핑거벨 앱이 저장한 역할과 5개 설정을 시작과 `resume`에서 `SharedPrefsProvider`로 읽습니다. 핑거벨 앱을 지웠거나 한 번도 실행하지 않았으면 기본값(`어르신`)으로 동작합니다.
 
 ## 참고

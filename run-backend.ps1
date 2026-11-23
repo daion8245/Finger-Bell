@@ -51,6 +51,7 @@ if ($Lan) { Write-Host '같은 Wi-Fi의 기기에서는 이 PC의 IP 주소로 �
 Push-Location $backend
 try {
     & $python -m uvicorn app.asgi:app --host $hostAddress --port $Port
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 } finally {
     Pop-Location
 }

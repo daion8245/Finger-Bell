@@ -252,7 +252,7 @@ packages/
 adb shell pm list packages | findstr fingersnap
 ```
 
-IntelliJ의 `.run/FingerBell_Android.run.xml` (**FingerBell (Android)**)도 `run-android.ps1 -NoResident`를 실행합니다.
+IntelliJ에서 **FingerBell (Start Server)**로 서버를 시작하고 **FingerBell (Android)**로 세 앱을 설치할 수 있습니다. **FingerBell (Build APKs)**는 기기 연결 없이 debug APK 3개를 만들며, 앱별 **Debug** 구성은 Dart 중단점과 Hot Reload를 지원합니다. [IntelliJ 실행 방법](RUN_LOCAL.ko.md#intellij-idea--cursor--vs-code)을 참고하세요.
 
 자세한 실행 옵션과 문제 해결은 [RUN_LOCAL.ko.md](RUN_LOCAL.ko.md)에 있습니다.
 
@@ -272,7 +272,7 @@ IntelliJ의 `.run/FingerBell_Android.run.xml` (**FingerBell (Android)**)도 `run
 
 시연은 어르신 · 보호자 · 시연 상대 기기 3대(같은 Wi-Fi)를 기준으로 합니다.
 
-1. PC에서 `.\run-backend.ps1 -Lan`으로 백엔드를 띄웁니다(Windows 방화벽에서 포트 `8765` 허용 필요).
+1. PC에서 IntelliJ의 **FingerBell (Start Server LAN)** 또는 `.\run-backend.ps1 -Lan`으로 백엔드를 시작합니다(Windows 방화벽에서 포트 `8765` 허용 필요).
 2. 루트 `.env.local.json`에 `{"FINGERBELL_API_URL": "http://<PC_IP>:8765"}`를 적습니다(형식은 `.env.example`).
 3. 세 기기에 **기기마다 한 번씩** `.\run-android.ps1 -Device <기기ID> -NoResident`를 실행해 세 앱(`핑거벨` · `핑거벨 문자` · `핑거벨 전화`)을 모두 설치합니다.
 4. 각 기기의 **핑거벨** 앱 상단 전환기로 역할을 `어르신` / `보호자`로 맞추고, 시연 상대 기기는 설정 › `시연 상대 화면 열기`로 **핑거벨 전화** 앱의 시연 상대 화면을 열어 둡니다. (세 앱은 화면에 떠 있을 때만 실시간 문자·수신 전화를 받으며, 다른 앱에서 돌아올 때는 `resume` 시 서버 상태로 따라잡습니다.)

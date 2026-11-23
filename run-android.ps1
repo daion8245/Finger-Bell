@@ -4,6 +4,7 @@ param(
     [string]$Emulator = 'Medium_Phone_API_37.0',
     [ValidateRange(1024, 65535)]
     [int]$ApiPort = 8765,
+    [switch]$BuildOnly,
     [switch]$NoResident
 )
 
@@ -14,25 +15,26 @@ $configPath = Join-Path $PSScriptRoot '.env.local.json'
 $flutterCommand = Get-Command flutter -ErrorAction SilentlyContinue
 $flutterExe = if ($flutterCommand) { $flutterCommand.Source } else { 'C:\flutter\bin\flutter.bat' }
 if (-not (Test-Path -LiteralPath $flutterExe)) { throw 'Flutter SDK was not found. Add flutter\bin to PATH.' }
-$androidSdk = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { Join-Path $env:LOCALAPPDATA 'Android\Sdk' }
-$adbExe = Join-Path $androidSdk 'platform-tools\adb.exe'
-if (-not (Test-Path -LiteralPath $adbExe)) { throw 'Android SDK platform-tools were not found.' }
+if (-not $BuildOnly) {
+    $androidSdk = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { Join-Path $env:LOCALAPPDATA 'Android\Sdk' }
+    $adbExe = Join-Path $androidSdk 'platform-tools\adb.exe'
+    if (-not (Test-Path -LiteralPath $adbExe)) { throw 'Android SDK platform-tools were not found.' }
 
-if ([string]::IsNullOrWhiteSpace($Device)) {
-    $adbLines = & $adbExe devices
-    if ($LASTEXITCODE -ne 0) { throw 'adb devices failed.' }
-    $readyDevices = @(
-        $adbLines | ForEach-Object {
-            if ($_ -match '^\s*(\S+)\s+device\s*$') { $Matches[1] }
+    if ([string]::IsNullOrWhiteSpace($Device)) {
+        $adbLines = & $adbExe devices
+        if ($LASTEXITCODE -ne 0) { throw 'adb devices failed.' }
+        $readyDevices = @(
+            $adbLines | ForEach-Object {
+                if ($_ -match '^\s*(\S+)\s+device\s*$') { $Matches[1] }
+            }
+        )
+        if ($readyDevices.Count -eq 1) {
+            $Device = $readyDevices[0]
+        } elseif ($readyDevices.Count -eq 0) {
+            $Device = 'emulator-5554'
+        } else {
+            throw ("Multiple Android devices are connected: {0}. Specify -Device <id>." -f ($readyDevices -join ', '))
         }
-    )
-    if ($readyDevices.Count -eq 1) {
-        $Device = $readyDevices[0]
-    } elseif ($readyDevices.Count -eq 0) {
-        $Device = 'emulator-5554'
-    } else {
-        Write-Host ("연결된 기기가 여러 대입니다: {0}. -Device <id> 로 골라 주세요." -f ($readyDevices -join ', '))
-        exit 1
     }
 }
 
@@ -47,33 +49,39 @@ try {
         & $flutterExe pub get
         if ($LASTEXITCODE -ne 0) { throw 'Flutter dependency setup failed.' }
 
-        $connectedDevices = & $adbExe devices
-        if (-not ($connectedDevices -match ('^' + [regex]::Escape($Device) + '\s+(device|offline)$'))) {
-            if (-not $Device.StartsWith('emulator-')) {
-                throw "Android device '$Device' is not connected."
+        if (-not $BuildOnly) {
+            $connectedDevices = & $adbExe devices
+            if ($LASTEXITCODE -ne 0) { throw 'adb devices failed.' }
+            $deviceState = $connectedDevices | Select-String ('^' + [regex]::Escape($Device) + '\s+(\S+)')
+            if (-not $deviceState) {
+                if (-not $Device.StartsWith('emulator-')) {
+                    throw "Android device '$Device' is not connected."
+                }
+                & $flutterExe emulators --launch $Emulator
+                if ($LASTEXITCODE -ne 0) { throw "Could not launch emulator '$Emulator'." }
+            } elseif ($deviceState.Matches[0].Groups[1].Value -eq 'unauthorized') {
+                throw "Android device '$Device' is unauthorized. Approve USB debugging on the device and retry."
             }
-            & $flutterExe emulators --launch $Emulator
-            if ($LASTEXITCODE -ne 0) { throw "Could not launch emulator '$Emulator'." }
+
+            $bootDeadline = [DateTime]::UtcNow.AddMinutes(3)
+            do {
+                try {
+                    $bootState = & $adbExe -s $Device shell getprop sys.boot_completed 2>$null
+                } catch {
+                    $bootState = ''
+                }
+                if (($bootState -join '').Trim() -eq '1') { break }
+                if ([DateTime]::UtcNow -ge $bootDeadline) { throw "Timed out waiting for '$Device' to boot." }
+                Start-Sleep -Seconds 2
+            } while ($true)
+
+            # Forward the device's localhost API port to the backend on this PC.
+            & $adbExe -s $Device reverse "tcp:$ApiPort" "tcp:$ApiPort"
+            if ($LASTEXITCODE -ne 0) { throw 'adb reverse failed.' }
         }
 
-        $bootDeadline = [DateTime]::UtcNow.AddMinutes(3)
-        do {
-            try {
-                $bootState = & $adbExe -s $Device shell getprop sys.boot_completed 2>$null
-            } catch {
-                $bootState = ''
-            }
-            if (($bootState -join '').Trim() -eq '1') { break }
-            if ([DateTime]::UtcNow -ge $bootDeadline) { throw "Timed out waiting for '$Device' to boot." }
-            Start-Sleep -Seconds 2
-        } while ($true)
-
-        # 기기의 127.0.0.1:8765 을 이 PC의 핑거벨 백엔드로 연결합니다 (에뮬레이터·USB 기기 공통).
-        & $adbExe -s $Device reverse "tcp:$ApiPort" "tcp:$ApiPort"
-        if ($LASTEXITCODE -ne 0) { throw 'adb reverse failed.' }
-
         $defineArguments = @()
-        # .env.local.json에 FINGERBELL_API_URL이 있으면 그 값을, 없으면 기본 주소를 씁니다.
+        # Use the local API URL when configured, or fall back to localhost.
         $useConfig = $false
         if (Test-Path -LiteralPath $configPath) {
             try {
@@ -94,22 +102,21 @@ try {
             @{ Flavor = 'call'; Target = 'lib/main_call.dart'; Package = 'kr.fingersnap.fingerbell.call' }
         )) {
             $build = [Diagnostics.Stopwatch]::StartNew()
-            # Windows PowerShell 5 treats redirected native stderr warnings as errors.
-            $ErrorActionPreference = 'Continue'
-            & $flutterExe build apk --debug --no-pub --flavor $app.Flavor -t $app.Target @defineArguments 2>&1 | ForEach-Object { Write-Host "$_" }
-            $ErrorActionPreference = 'Stop'
+            & $flutterExe build apk --debug --no-pub --flavor $app.Flavor -t $app.Target @defineArguments
             if ($LASTEXITCODE -ne 0) { throw "Build failed: $($app.Flavor)" }
             Write-Host ('BUILD {0}: {1:N2}s' -f $app.Flavor, $build.Elapsed.TotalSeconds)
+            if ($BuildOnly) { continue }
+
             $apk = Join-Path $appDirectory "build\app\outputs\flutter-apk\app-$($app.Flavor)-debug.apk"
-            $ErrorActionPreference = 'Continue'
-            & $adbExe -s $Device install -r $apk 2>&1 | ForEach-Object { Write-Host "$_" }
-            $ErrorActionPreference = 'Stop'
+            & $adbExe -s $Device install -r $apk
             if ($LASTEXITCODE -ne 0) { throw "Install failed: $($app.Package)" }
         }
+        if ($BuildOnly) {
+            Write-Host ('BUILD total: {0:N2}s' -f $total.Elapsed.TotalSeconds)
+            return
+        }
         Write-Host ('BUILD+INSTALL total: {0:N2}s' -f $total.Elapsed.TotalSeconds)
-        $ErrorActionPreference = 'Continue'
-        & $adbExe -s $Device shell am start -n 'kr.fingersnap.fingerbell/kr.fingersnap.fingerbell.MainActivity' 2>&1 | ForEach-Object { Write-Host "$_" }
-        $ErrorActionPreference = 'Stop'
+        & $adbExe -s $Device shell am start -n 'kr.fingersnap.fingerbell/kr.fingersnap.fingerbell.MainActivity'
         if ($LASTEXITCODE -ne 0) { throw 'FingerBell launch failed.' }
         if (-not $NoResident) {
             & $flutterExe attach -d $Device --app-id kr.fingersnap.fingerbell

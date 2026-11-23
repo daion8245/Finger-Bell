@@ -46,7 +46,7 @@
 
 - `-Device`를 주지 않으면 연결(인증)된 기기 1대를 자동 선택하고, 없으면 `Medium_Phone_API_37.0`(`emulator-5554`) 에뮬레이터를 띄우며, 2대 이상 연결돼 있으면 기기 id 목록을 보여 주고 `-Device`를 고르도록 끝냅니다.
 - 세 flavor를 차례로 빌드(`--no-pub`)·설치(`adb install -r`)하고 `adb reverse tcp:8765 tcp:8765`를 설정한 뒤 핑거벨을 엽니다.
-- IntelliJ 실행 구성 **FingerBell (Android)**(`.run/FingerBell_Android.run.xml`)도 `run-android.ps1 -NoResident`를 실행합니다.
+- IntelliJ에서는 **FingerBell (Android)**로 세 앱을 설치합니다. 이어서 **FingerBell (Debug)**, **FingerBell SMS (Debug)**, **FingerBell Call (Debug)** 중 하나로 앱별 Dart 디버깅을 시작합니다. **FingerBell (Build APKs)**는 기기 연결 없이 debug APK 3개를 생성합니다. [IntelliJ 실행 방법](../../RUN_LOCAL.ko.md#intellij-idea--cursor--vs-code)을 참고하세요.
 
 ## 문제 해결
 

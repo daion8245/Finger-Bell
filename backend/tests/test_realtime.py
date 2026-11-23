@@ -1,3 +1,10 @@
+from concurrent.futures import ThreadPoolExecutor
+from threading import Event
+
+import pytest
+
+from app import main, seed as seed_data
+
 from .conftest import member, state
 
 
@@ -33,6 +40,47 @@ def test_demo_reset_restores_seed(client):
     client.post("/api/v1/security/sos-freeze", json={"user_id": "senior", "trigger_type": "LONG_PRESS"})
     assert client.post("/api/v1/demo/reset").status_code == 200
     assert member(state(client), "senior")["is_frozen"] is False
+
+
+def test_state_during_demo_reset_reads_complete_previous_data(client, monkeypatch):
+    client.post("/api/v1/security/sos-freeze", json={"user_id": "senior", "trigger_type": "LONG_PRESS"})
+    resetting = Event()
+    finish_reset = Event()
+    seed = seed_data.seed
+
+    def pause_before_seed(session):
+        resetting.set()
+        assert finish_reset.wait(timeout=10)
+        seed(session)
+
+    monkeypatch.setattr(seed_data, "seed", pause_before_seed)
+    monkeypatch.setattr(main, "seed", pause_before_seed)
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        reset = executor.submit(client.post, "/api/v1/demo/reset")
+        try:
+            assert resetting.wait(timeout=5)
+            snapshot = state(client)
+            assert {m["id"] for m in snapshot["members"]} == {"senior", "child"}
+            assert member(snapshot, "senior")["is_frozen"] is True
+        finally:
+            finish_reset.set()
+        assert reset.result(timeout=5).status_code == 200
+    assert member(state(client), "senior")["is_frozen"] is False
+
+
+def test_failed_demo_reset_keeps_previous_data(client, monkeypatch):
+    client.post("/api/v1/security/sos-freeze", json={"user_id": "senior", "trigger_type": "LONG_PRESS"})
+    seed = seed_data.seed
+
+    def fail_after_seed(session):
+        seed(session)
+        session.flush()
+        raise RuntimeError("seed failed")
+
+    monkeypatch.setattr(seed_data, "seed", fail_after_seed)
+    with pytest.raises(RuntimeError, match="seed failed"):
+        client.post("/api/v1/demo/reset")
+    assert member(state(client), "senior")["is_frozen"] is True
 
 
 def test_unknown_member_is_404(client):

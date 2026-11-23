@@ -1272,10 +1272,8 @@ class FamilyService:
 
     def _do_transfer(self, m: Member, recipient: Recipient, amount: int, alert: bool = True) -> None:
         acct = self.primary(m)
-        if acct.withdrawal_blocked:
-            raise DomainError("frozen", "출금이 정지된 계좌예요.")
         payee = self._payee_account(recipient.digits)
-        acct.balance -= amount
+        self._debit(acct, amount)
         if recipient.is_new and not any(c.account_digits == recipient.digits for c in m.contacts):
             m.contacts.append(
                 Contact(
@@ -1302,6 +1300,18 @@ class FamilyService:
             self._alert(m, f"{recipient.name}님께 송금", "ok", "💸", amount)
         if payee is not None:
             self._deposit(payee, m, amount)
+
+    def _debit(self, acct: Account, amount: int) -> None:
+        debited = self.s.execute(
+            update(Account)
+            .where(Account.id == acct.id, Account.withdrawal_blocked.is_(False), Account.balance >= amount)
+            .values(balance=Account.balance - amount)
+        )
+        self.s.refresh(acct)
+        if not debited.rowcount:
+            if acct.withdrawal_blocked:
+                raise DomainError("frozen", "출금이 정지된 계좌예요.")
+            raise DomainError("balance", "잔액이 부족해요.")
 
     def _deposit(self, acct: Account, sender: Member, amount: int) -> None:
         """핑거벨 안의 계좌로 보낸 돈을 받는 사람 계좌에 넣습니다 (예: 보호자가 아이에게 보낸 용돈)."""
@@ -1710,10 +1720,29 @@ class FamilyService:
             raise DomainError("merchant", "결제처를 찾을 수 없어요.", 404)
         return mc
 
+    def _lock_payment_account(self, member_id: str) -> None:
+        primary_id = (
+            select(Account.id)
+            .where(Account.member_id == member_id)
+            .order_by(Account.is_primary.desc(), Account.sort_order)
+            .limit(1)
+            .scalar_subquery()
+        )
+        # 결제 한도 확인 전에 쓰기 잠금을 잡고, 출금과 장부 기록을 함께 커밋합니다.
+        self.s.execute(
+            update(Account)
+            .where(Account.id == primary_id)
+            .values(balance=Account.balance)
+            .execution_options(synchronize_session=False)
+        )
+
     def pay(self, member_id: str, merchant_id: str) -> dict[str, Any]:
+        self._lock_payment_account(member_id)
         m = self.member(member_id)
         mc = self._merchant(m, merchant_id)
-        check = self.check_payment(m, mc)
+        return self._pay(m, mc, self.check_payment(m, mc))
+
+    def _pay(self, m: Member, mc: Merchant, check: PaymentCheck) -> dict[str, Any]:
         if check.ok:
             self._do_payment(m, mc)
             self._emit("payment", f"{self._who(m)}이 {mc.name}에서 {won(mc.amount)}을 결제했어요", member_id=m.id)
@@ -1725,11 +1754,12 @@ class FamilyService:
         return {**check.to_dict(), "merchant": self._merchant_dict(mc)}
 
     def request_payment(self, member_id: str, merchant_id: str) -> dict[str, Any]:
+        self._lock_payment_account(member_id)
         m = self.protected(member_id)
         mc = self._merchant(m, merchant_id)
         check = self.check_payment(m, mc)
         if check.ok:
-            return self.pay(member_id, merchant_id)
+            return self._pay(m, mc, check)
         if not check.can_request:
             return {**check.to_dict(), "merchant": self._merchant_dict(mc)}
         if self.has_pending(m.id, "payment", lambda r: r.payload.get("merchant_id") == merchant_id):
@@ -1746,10 +1776,7 @@ class FamilyService:
                 "request": self._request_dict(req), "merchant": self._merchant_dict(mc)}
 
     def _do_payment(self, m: Member, mc: Merchant, alert: bool = True) -> None:
-        acct = self.primary(m)
-        if acct.withdrawal_blocked:
-            raise DomainError("frozen", "출금이 정지된 계좌예요.")
-        acct.balance -= mc.amount
+        self._debit(self.primary(m), mc.amount)
         self._log(m, kind="out", title=mc.name, desc=CATEGORIES[mc.category].label, amount=-mc.amount, emoji=mc.emoji, category="payment")
         if alert:
             self._alert(m, f"{mc.name} 결제", "ok", mc.emoji, mc.amount)
@@ -2115,7 +2142,8 @@ class FamilyService:
             if req.amount > self.primary(m).balance:
                 return False, "잔액이 부족해 보내지 못했어요."
             try:
-                self._do_transfer(m, Recipient.from_dict(req.payload["recipient"]), req.amount, alert=False)
+                with self.s.begin_nested():
+                    self._do_transfer(m, Recipient.from_dict(req.payload["recipient"]), req.amount, alert=False)
             except DomainError as exc:
                 return False, exc.message
             return True, ""
@@ -2159,7 +2187,10 @@ class FamilyService:
                 return False, "계좌가 동결되어 결제하지 못했어요."
             if mc.amount > self.primary(m).balance:
                 return False, "잔액이 부족해 결제하지 못했어요."
-            self._do_payment(m, mc, alert=False)
+            try:
+                self._do_payment(m, mc, alert=False)
+            except DomainError as exc:
+                return False, exc.message
             return True, ""
         if req.type == "mode":
             self._set_mode(m, req.payload["mode"], "guardian", alert=False)
