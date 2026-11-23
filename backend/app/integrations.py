@@ -24,6 +24,8 @@ from .domain.sms import VALID_LEVELS, SmsVerdict
 OPENROUTER_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_STT_URL = "https://openrouter.ai/api/v1/audio/transcriptions"
 ALLOWED_AUDIO_FORMATS: tuple[str, ...] = ("wav", "mp3", "flac", "m4a", "ogg", "webm", "aac")
+# 기본 추론(thinking)을 켜 두면 gemini-3.8-flash가 5초 제한을 자주 넘깁니다. "none"은 거부되어 가장 낮은 값을 씁니다.
+LLM_REASONING: dict[str, Any] = {"effort": "minimal"}
 
 SMS_SYSTEM_PROMPT = (
     "당신은 어르신을 보이스피싱·스미싱으로부터 보호하는 핑거벨 AI 판정기입니다. "
@@ -537,6 +539,7 @@ class OpenRouterLlmGateway:
         return {
             "model": self.model,
             "temperature": 0,
+            "reasoning": LLM_REASONING,
             "messages": [
                 {"role": "system", "content": SMS_SYSTEM_PROMPT},
                 {"role": "user", "content": build_sms_user_content(sender, body, first_pass)},
@@ -551,6 +554,7 @@ class OpenRouterLlmGateway:
         return {
             "model": self.model,
             "temperature": 0,
+            "reasoning": LLM_REASONING,
             "messages": [
                 {"role": "system", "content": CALL_SYSTEM_PROMPT},
                 {"role": "user", "content": build_call_user_content(transcript, first_pass)},
@@ -565,6 +569,7 @@ class OpenRouterLlmGateway:
         return {
             "model": self.model,
             "temperature": 0,
+            "reasoning": LLM_REASONING,
             "messages": [
                 {"role": "system", "content": QUESTION_SYSTEM_PROMPT},
                 {"role": "user", "content": build_question_user_content(action_kind, incident_context)},
@@ -586,6 +591,7 @@ class OpenRouterLlmGateway:
         return {
             "model": self.model,
             "temperature": 0,
+            "reasoning": LLM_REASONING,
             "messages": [
                 {"role": "system", "content": INCIDENT_SYSTEM_PROMPT},
                 {
