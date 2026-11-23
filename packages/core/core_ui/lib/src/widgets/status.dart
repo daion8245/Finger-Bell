@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/fb_colors.dart';
+import '../theme/fb_icons.dart';
 import '../theme/fb_text.dart';
 
 enum ResultTone { blue, red, soft }
@@ -48,17 +49,17 @@ class _ResultIconState extends State<ResultIcon> with SingleTickerProviderStateM
       ResultTone.soft => (c.blueSoft, c.blue),
     };
     final circle = Container(
-      width: 60.8,
-      height: 60.8,
+      width: 64,
+      height: 64,
       decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-      child: Icon(widget.icon, color: fg, size: 29),
+      child: Icon(widget.icon, color: fg, size: 30),
     );
     final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     if (!widget.ringing || reduce) return Center(child: circle);
     return Center(
       child: SizedBox(
-        width: 60.8,
-        height: 60.8,
+        width: 64,
+        height: 64,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -94,7 +95,7 @@ class CenterBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.fb;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 12.8, 0, 6.4),
+      padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
       child: Column(
         children: [
           icon,
@@ -104,9 +105,9 @@ class CenterBlock extends StatelessWidget {
             child: Text(title, textAlign: TextAlign.center, style: FbText.resultTitle(c)),
           ),
           if (body != null) ...[
-            const SizedBox(height: 6.4),
+            const SizedBox(height: 8),
             ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 304),
+              constraints: const BoxConstraints(maxWidth: 320),
               child: Text(body!, textAlign: TextAlign.center, style: FbText.body(c)),
             ),
           ],
@@ -122,7 +123,7 @@ class FbRail extends StatelessWidget {
   final Color? color;
   final double height;
 
-  const FbRail({super.key, required this.fraction, this.color, this.height = 6.4});
+  const FbRail({super.key, required this.fraction, this.color, this.height = 8});
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +147,7 @@ class FbRail extends StatelessWidget {
   }
 }
 
-/// 위험 사유 상자 (.risk-box).
+/// 위험 사유 상자. 피그마 WarningCard처럼 왼쪽 방패 + 역할색 바탕 (위험: 코랄, 그 외: 인디고).
 class RiskBox extends StatelessWidget {
   final String title;
   final bool danger;
@@ -157,19 +158,29 @@ class RiskBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.fb;
+    final accent = danger ? c.redStrong : c.blue;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14.4),
-      decoration: BoxDecoration(color: danger ? c.redSoft : c.soft, borderRadius: BorderRadius.circular(14)),
-      child: Column(
+      padding: const EdgeInsets.fromLTRB(14, 14, 16, 14),
+      decoration: BoxDecoration(color: danger ? c.redSoft : c.blueSoft, borderRadius: BorderRadius.circular(12)),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(fontSize: 13.4, fontWeight: FontWeight.w700, color: danger ? c.redStrong : c.ink),
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Icon(FbIcons.shield, size: 20, color: accent),
           ),
-          if (items.isNotEmpty) const SizedBox(height: 5.6),
-          for (final item in items) BulletText(item, style: TextStyle(fontSize: 13.1, height: 1.7, color: c.ink2)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontSize: 15, height: 1.4, fontWeight: FontWeight.w700, color: accent)),
+                if (items.isNotEmpty) const SizedBox(height: 6),
+                for (final item in items) BulletText(item, style: TextStyle(fontSize: 14, height: 1.6, color: c.ink2)),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -203,7 +214,7 @@ class EmptyText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 25.6),
-    child: Text(text, textAlign: TextAlign.center, style: TextStyle(fontSize: 14.1, color: context.fb.muted)),
+    padding: const EdgeInsets.symmetric(vertical: 24),
+    child: Text(text, textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: context.fb.muted)),
   );
 }

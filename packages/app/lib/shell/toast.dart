@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
@@ -48,7 +49,7 @@ class ToastHostState extends State<ToastHost> {
           duration: const Duration(milliseconds: 200),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13.6),
-            decoration: BoxDecoration(color: const Color(0xFF252F40), borderRadius: BorderRadius.circular(14)),
+            decoration: BoxDecoration(color: context.fb.ink, borderRadius: BorderRadius.circular(12)),
             child: Text(
               _message,
               textAlign: TextAlign.center,

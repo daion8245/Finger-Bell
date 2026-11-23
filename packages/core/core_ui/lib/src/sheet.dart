@@ -15,17 +15,17 @@ Future<T?> showFbSheet<T>(BuildContext context, {required WidgetBuilder builder}
     return showDialog<T>(
       context: context,
       routeSettings: settings,
-      barrierColor: const Color(0x6B152338),
+      barrierColor: const Color(0x66000000),
       builder: (ctx) => FbLayout(
         isWeb: true,
         child: Dialog(
           insetPadding: const EdgeInsets.all(20),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           clipBehavior: Clip.antiAlias,
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 460, maxHeight: MediaQuery.sizeOf(ctx).height * .88),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(26, 22, 26, 26),
+              padding: const EdgeInsets.all(24),
               child: builder(ctx),
             ),
           ),
@@ -38,8 +38,8 @@ Future<T?> showFbSheet<T>(BuildContext context, {required WidgetBuilder builder}
     routeSettings: settings,
     isScrollControlled: true,
     useSafeArea: true,
-    barrierColor: const Color(0x6B152338),
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
+    barrierColor: const Color(0x66000000),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
     clipBehavior: Clip.antiAlias,
     constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * .9),
     builder: (ctx) => FbLayout(
@@ -47,17 +47,17 @@ Future<T?> showFbSheet<T>(BuildContext context, {required WidgetBuilder builder}
       child: Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(22, 12, 22, 26),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
                 child: Container(
-                  width: 40,
-                  height: 5,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(color: const Color(0xFFE2E6EB), borderRadius: BorderRadius.circular(9)),
+                  width: 32,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(color: ctx.fb.faint, borderRadius: BorderRadius.circular(99)),
                 ),
               ),
               builder(ctx),
@@ -83,7 +83,7 @@ class SheetHead extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: SizedBox(
-        height: 40,
+        height: 48,
         child: Row(
           children: [
             if (onBack != null)

@@ -6,7 +6,8 @@ import '../theme/fb_theme.dart';
 
 enum FbButtonVariant { primary, gray, red, white, ghostWhite }
 
-/// 시안의 .btn. 누르면 살짝 작아집니다.
+/// 피그마 Button: 높이 56 · 모서리 14. Primary(인디고) / Secondary(연보라, [gray]) / Danger(코랄, [red]).
+/// 비활성은 회색으로 바뀌고, 누르면 살짝 작아집니다.
 class FbButton extends StatefulWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -38,12 +39,13 @@ class _FbButtonState extends State<FbButton> {
     final c = context.fb;
     final (bg, fg) = switch (widget.variant) {
       FbButtonVariant.primary => (c.blue, Colors.white),
-      FbButtonVariant.gray => (c.soft, c.ink2),
+      FbButtonVariant.gray => (c.blueSoft, c.blue),
       FbButtonVariant.red => (c.red, Colors.white),
       FbButtonVariant.white => (Colors.white, c.redStrong),
       FbButtonVariant.ghostWhite => (Colors.white.withValues(alpha: .16), Colors.white),
     };
     final enabled = widget.onPressed != null && !widget.busy;
+    final (fill, ink) = enabled || widget.busy ? (bg, fg) : (c.line, c.faint);
     return Semantics(
       button: true,
       enabled: enabled,
@@ -51,41 +53,38 @@ class _FbButtonState extends State<FbButton> {
       child: AnimatedScale(
         scale: _down ? .98 : 1,
         duration: const Duration(milliseconds: 100),
-        child: Opacity(
-          opacity: enabled || widget.busy ? 1 : .45,
-          child: Material(
-            color: bg,
+        child: Material(
+          color: fill,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
             borderRadius: BorderRadius.circular(14),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: enabled ? widget.onPressed : null,
-              onHighlightChanged: (v) => setState(() => _down = v),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 49.6),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (widget.busy)
-                        SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: fg))
-                      else if (widget.icon != null)
-                        Icon(widget.icon, size: 19, color: fg),
-                      if (widget.busy || widget.icon != null) const SizedBox(width: 6),
-                      Flexible(
-                        child: ExcludeSemantics(
-                          excluding: widget.busy,
-                          child: Text(
-                            widget.label,
-                            style: FbText.button.copyWith(color: fg),
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                          ),
+            onTap: enabled ? widget.onPressed : null,
+            onHighlightChanged: (v) => setState(() => _down = v),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 56),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (widget.busy)
+                      SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: ink))
+                    else if (widget.icon != null)
+                      Icon(widget.icon, size: 20, color: ink),
+                    if (widget.busy || widget.icon != null) const SizedBox(width: 6),
+                    Flexible(
+                      child: ExcludeSemantics(
+                        excluding: widget.busy,
+                        child: Text(
+                          widget.label,
+                          style: FbText.button.copyWith(color: ink),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -121,7 +120,7 @@ class FbTextButton extends StatelessWidget {
   final Color? color;
   final double fontSize;
 
-  const FbTextButton(this.label, {super.key, this.onPressed, this.color, this.fontSize = 13.8});
+  const FbTextButton(this.label, {super.key, this.onPressed, this.color, this.fontSize = 15});
 
   @override
   Widget build(BuildContext context) {
@@ -131,8 +130,8 @@ class FbTextButton extends StatelessWidget {
       style: TextButton.styleFrom(
         foregroundColor: color ?? c.muted,
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-        minimumSize: const Size(44, 36),
-        textStyle: TextStyle(fontFamily: FbTheme.fontFamily, fontSize: fontSize, fontWeight: FontWeight.w700),
+        minimumSize: const Size(48, 48),
+        textStyle: TextStyle(fontFamily: FbTheme.fontFamily, fontSize: fontSize, fontWeight: FontWeight.w600),
       ),
       child: Text(label),
     );

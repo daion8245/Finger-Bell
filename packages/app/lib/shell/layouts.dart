@@ -152,7 +152,10 @@ class _MobileLayoutState extends State<MobileLayout> {
         body: Column(
           children: [
             Container(
-              color: c.glass,
+              decoration: BoxDecoration(
+                color: c.glass,
+                border: Border(bottom: BorderSide(color: c.line)),
+              ),
               padding: EdgeInsets.fromLTRB(16, MediaQuery.paddingOf(context).top + 8, 8, 8),
               child: Row(
                 children: [
@@ -166,21 +169,21 @@ class _MobileLayoutState extends State<MobileLayout> {
             Expanded(
               child: SingleChildScrollView(
                 controller: _scroll,
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                 child: ShellBody(serverAddress: widget.serverAddress),
               ),
             ),
           ],
         ),
         bottomNavigationBar: Container(
-          decoration: const BoxDecoration(
-            color: Color(0xF2FFFFFF),
-            border: Border(top: BorderSide(color: Color(0xFFEFF1F4))),
+          decoration: BoxDecoration(
+            color: c.card,
+            border: Border(top: BorderSide(color: c.line)),
           ),
           child: SafeArea(
             top: false,
             child: SizedBox(
-              height: 64,
+              height: 72,
               child: Row(
                 children: [
                   for (final (tab, label, icon) in navFor(shell.persona))
@@ -213,7 +216,7 @@ class _BottomNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.fb;
-    final color = selected ? c.ink : c.navIdle;
+    final color = selected ? c.blue : c.navIdle;
     return Semantics(
       selected: selected,
       button: true,
@@ -226,9 +229,22 @@ class _BottomNavItem extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 23, color: color),
+              // 선택된 메뉴는 연보라 알약 위에 인디고 아이콘.
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                width: 56,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: selected ? c.blueSoft : Colors.transparent,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: Icon(icon, size: 24, color: color),
+              ),
               const SizedBox(height: 4),
-              Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+              Text(
+                label,
+                style: TextStyle(fontSize: 12, fontWeight: selected ? FontWeight.w700 : FontWeight.w600, color: color),
+              ),
             ],
           ),
         ),
@@ -268,9 +284,9 @@ class _WebLayoutState extends State<WebLayout> {
         Container(
           width: sidebarWidth,
           padding: const EdgeInsets.fromLTRB(16, 28, 16, 22),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: Colors.white,
-            border: Border(right: BorderSide(color: Color(0xFFEEF0F3))),
+            border: Border(right: BorderSide(color: c.line)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -292,7 +308,7 @@ class _WebLayoutState extends State<WebLayout> {
               const Spacer(),
               Container(
                 padding: const EdgeInsets.fromLTRB(10, 18, 10, 0),
-                decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFFF0F2F5)))),
+                decoration: BoxDecoration(border: Border(top: BorderSide(color: c.line))),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -318,9 +334,9 @@ class _WebLayoutState extends State<WebLayout> {
               Container(
                 height: 68,
                 padding: const EdgeInsets.symmetric(horizontal: 32),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: Colors.white,
-                  border: Border(bottom: BorderSide(color: Color(0xFFEEF0F3))),
+                  border: Border(bottom: BorderSide(color: c.line)),
                 ),
                 child: Row(
                   children: [
@@ -371,7 +387,7 @@ class _WebLayoutState extends State<WebLayout> {
           height: size.height.clamp(0, 900),
           decoration: BoxDecoration(
             color: c.bg,
-            boxShadow: framed ? const [BoxShadow(color: Color(0x242D4468), blurRadius: 70, offset: Offset(0, 24))] : null,
+            border: framed ? Border.all(color: c.line) : null,
           ),
           clipBehavior: Clip.hardEdge,
           child: Material(color: c.bg, child: frame),
@@ -392,7 +408,7 @@ class _SideNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.fb;
-    final color = selected ? c.blueStrong : c.muted;
+    final color = selected ? c.blue : c.muted;
     return Semantics(
       selected: selected,
       child: Material(
@@ -403,7 +419,7 @@ class _SideNavItem extends StatelessWidget {
           hoverColor: c.soft,
           onTap: onTap,
           child: SizedBox(
-            height: 46,
+            height: 48,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(

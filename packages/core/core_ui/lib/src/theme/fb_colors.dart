@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// 색 토큰. 파랑은 기본 동작, 빨강은 SOS·위험에만 씁니다.
+/// 색 토큰. 인디고(blue*)는 기본 동작, 코랄(red*)은 SOS·위험에만 씁니다.
 @immutable
 class FbColors extends ThemeExtension<FbColors> {
   final Color blue;
@@ -21,8 +21,9 @@ class FbColors extends ThemeExtension<FbColors> {
   final Color navIdle;
   final Color backdrop;
 
-  /// 고대비 모드에서 카드에 두르는 테두리 (없으면 null).
+  /// 카드 외곽선 (없으면 null). 기본은 1px, 고대비는 [cardBorderWidth] 2px.
   final Color? cardBorder;
+  final double cardBorderWidth;
 
   const FbColors({
     required this.blue,
@@ -43,32 +44,35 @@ class FbColors extends ThemeExtension<FbColors> {
     required this.navIdle,
     required this.backdrop,
     this.cardBorder,
+    this.cardBorderWidth = 1,
   });
 
+  // 피그마 「핑거벨 · 공통 토큰」: primary 인디고, error 코랄, background #F4F5FB, outline #E6E8F0.
   static const light = FbColors(
-    blue: Color(0xFF3182F6),
-    blueStrong: Color(0xFF1B64DA),
-    blueSoft: Color(0xFFE8F3FF),
-    red: Color(0xFFF04452),
-    redStrong: Color(0xFFD0293A),
-    redSoft: Color(0xFFFFF0F1),
-    ink: Color(0xFF191F28),
-    ink2: Color(0xFF4E5968),
-    muted: Color(0xFF8B95A1),
-    faint: Color(0xFFB0B8C1),
-    line: Color(0xFFF2F4F6),
-    bg: Color(0xFFF3F5F8),
+    blue: Color(0xFF4F46E5),
+    blueStrong: Color(0xFF4338CA),
+    blueSoft: Color(0xFFEEF0FF),
+    red: Color(0xFFFF5B4D),
+    redStrong: Color(0xFFD63A2F),
+    redSoft: Color(0xFFFFEEEC),
+    ink: Color(0xFF1B1D2A),
+    ink2: Color(0xFF3F4354),
+    muted: Color(0xFF6B7080),
+    faint: Color(0xFFA0A4B3),
+    line: Color(0xFFE6E8F0),
+    bg: Color(0xFFF4F5FB),
     card: Color(0xFFFFFFFF),
-    soft: Color(0xFFF2F4F6),
-    glass: Color(0xEBF3F5F8),
-    navIdle: Color(0xFFB0B8C1),
-    backdrop: Color(0xFFECEFF4),
+    soft: Color(0xFFEEEFF5),
+    glass: Color(0xF2FFFFFF),
+    navIdle: Color(0xFF9A9EAD),
+    backdrop: Color(0xFFE9EBF3),
+    cardBorder: Color(0xFFE6E8F0),
   );
 
   static const highContrast = FbColors(
-    blue: Color(0xFF0B55D6),
-    blueStrong: Color(0xFF063B9C),
-    blueSoft: Color(0xFFDCE9FF),
+    blue: Color(0xFF3730A3),
+    blueStrong: Color(0xFF282380),
+    blueSoft: Color(0xFFE0E3FF),
     red: Color(0xFFC8102E),
     redStrong: Color(0xFF9E0B22),
     redSoft: Color(0xFFFFE3E7),
@@ -84,6 +88,7 @@ class FbColors extends ThemeExtension<FbColors> {
     navIdle: Color(0xFF4A525C),
     backdrop: Color(0xFFFFFFFF),
     cardBorder: Color(0xFF1B1F24),
+    cardBorderWidth: 2,
   );
 
   static FbColors of(BuildContext context) => Theme.of(context).extension<FbColors>() ?? light;
@@ -114,6 +119,7 @@ class FbColors extends ThemeExtension<FbColors> {
       navIdle: l(navIdle, other.navIdle),
       backdrop: l(backdrop, other.backdrop),
       cardBorder: t < .5 ? cardBorder : other.cardBorder,
+      cardBorderWidth: t < .5 ? cardBorderWidth : other.cardBorderWidth,
     );
   }
 }

@@ -4,17 +4,17 @@ import '../theme/fb_colors.dart';
 import '../theme/fb_text.dart';
 import '../theme/fb_theme.dart';
 
-/// 흰 카드 (radius 22). 고대비 모드에서는 진한 테두리를 두릅니다.
+/// 흰 카드 (radius 16 · 외곽선 1 · 그림자 없음). 고대비 모드에서는 진한 2px 테두리를 두릅니다.
 class FbCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final Color? color;
 
-  const FbCard({super.key, required this.child, this.padding = const EdgeInsets.all(21.6), this.color});
+  const FbCard({super.key, required this.child, this.padding = const EdgeInsets.all(20), this.color});
 
   /// 목록 카드: 위아래 여백만 줄인 카드.
   const FbCard.list({super.key, required this.child, this.color})
-    : padding = const EdgeInsets.symmetric(horizontal: 21.6, vertical: 8);
+    : padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 8);
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +22,8 @@ class FbCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: color ?? c.card,
-        borderRadius: BorderRadius.circular(22),
-        border: c.cardBorder != null ? Border.all(color: c.cardBorder!, width: 2) : null,
+        borderRadius: BorderRadius.circular(16),
+        border: c.cardBorder != null ? Border.all(color: c.cardBorder!, width: c.cardBorderWidth) : null,
       ),
       padding: padding,
       child: child,
@@ -45,7 +45,7 @@ class CardTitle extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Semantics(header: true, child: Text(title, style: FbText.cardTitle(c))),
-        const SizedBox(height: 5.6),
+        const SizedBox(height: 4),
         if (desc != null) ...[Text(desc!, style: FbText.cardDesc(c)), const SizedBox(height: 12)],
       ],
     );
@@ -73,7 +73,7 @@ class ListHead extends StatelessWidget {
               foregroundColor: c.muted,
               padding: const EdgeInsets.symmetric(horizontal: 4),
               minimumSize: const Size(44, 32),
-              textStyle: const TextStyle(fontFamily: FbTheme.fontFamily, fontSize: 13.1, fontWeight: FontWeight.w700),
+              textStyle: const TextStyle(fontFamily: FbTheme.fontFamily, fontSize: 14, fontWeight: FontWeight.w600),
             ),
             child: Text(action!),
           ),
@@ -93,11 +93,11 @@ class Greeting extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.fb;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(2.4, 11, 2.4, 4),
+      padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (sub != null) ...[Text(sub!, style: FbText.greetSub(c)), const SizedBox(height: 4.8)],
+          if (sub != null) ...[Text(sub!, style: FbText.greetSub(c)), const SizedBox(height: 4)],
           Semantics(header: true, child: Text(title, style: FbText.greet(c))),
         ],
       ),

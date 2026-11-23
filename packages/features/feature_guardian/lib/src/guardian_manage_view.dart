@@ -62,7 +62,7 @@ class _ManageCardState extends State<ManageCard> {
             Container(
               margin: const EdgeInsets.only(top: 6.4),
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: c.redSoft, borderRadius: BorderRadius.circular(22)),
+              decoration: BoxDecoration(color: c.redSoft, borderRadius: BorderRadius.circular(12)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [

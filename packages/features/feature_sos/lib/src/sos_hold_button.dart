@@ -92,7 +92,7 @@ class _SosHoldButtonState extends State<SosHoldButton> with TickerProviderStateM
           onPointerUp: (_) => _cancel(),
           onPointerCancel: (_) => _cancel(),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(16),
             child: Container(
               color: c.red,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18.4),

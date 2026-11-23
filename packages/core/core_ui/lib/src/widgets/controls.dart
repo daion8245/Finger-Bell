@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/fb_colors.dart';
 import '../theme/fb_text.dart';
 
-/// 켜고 끄는 스위치 (48 × 28).
+/// 켜고 끄는 스위치 (48 × 28, 그림자 없음).
 class FbToggle extends StatelessWidget {
   final bool value;
   final ValueChanged<bool>? onChanged;
@@ -26,7 +26,7 @@ class FbToggle extends StatelessWidget {
           height: 28,
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: value ? c.blue : const Color(0xFFD1D6DB),
+            color: value ? c.blue : c.faint,
             borderRadius: BorderRadius.circular(99),
           ),
           child: AnimatedAlign(
@@ -35,11 +35,7 @@ class FbToggle extends StatelessWidget {
             child: Container(
               width: 22,
               height: 22,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [BoxShadow(color: Color(0x22000000), blurRadius: 3, offset: Offset(0, 1))],
-              ),
+              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
             ),
           ),
         ),
@@ -80,8 +76,8 @@ class FbSegmented<T> extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(compact ? 3 : 4),
       decoration: BoxDecoration(
-        color: background ?? (compact ? const Color(0xFFE5E9EF) : c.soft),
-        borderRadius: BorderRadius.circular(compact ? 11 : 12),
+        color: background ?? c.soft,
+        borderRadius: BorderRadius.circular(compact ? 99 : 12),
       ),
       child: Row(
         mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
@@ -110,20 +106,20 @@ class _SegButton extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 4, vertical: compact ? 6 : 9.6),
+          padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 4, vertical: compact ? 6 : 10),
           decoration: BoxDecoration(
-            color: selected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(compact ? 8 : 9),
-            boxShadow: selected ? const [BoxShadow(color: Color(0x1A141E32), blurRadius: 2, offset: Offset(0, 1))] : null,
+            color: selected ? (compact ? c.blue : Colors.white) : Colors.transparent,
+            borderRadius: BorderRadius.circular(compact ? 99 : 8),
+            border: selected && !compact ? Border.all(color: c.line) : null,
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
             maxLines: 1,
             style: TextStyle(
-              fontSize: compact ? 12.5 : 14.1,
+              fontSize: compact ? 13 : 15,
               fontWeight: FontWeight.w700,
-              color: selected ? c.ink : c.muted,
+              color: selected ? (compact ? Colors.white : c.blue) : c.muted,
             ),
           ),
         ),
@@ -154,15 +150,16 @@ class FbFilterChips extends StatelessWidget {
             child: GestureDetector(
               onTap: () => onSelected(key),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 15.2, vertical: 8.8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
                 decoration: BoxDecoration(
-                  color: key == active ? c.ink : const Color(0xFFE6EAEF),
+                  color: key == active ? c.blue : c.card,
                   borderRadius: BorderRadius.circular(99),
+                  border: Border.all(color: key == active ? c.blue : c.line),
                 ),
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: 13.6,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: key == active ? Colors.white : c.ink2,
                   ),
@@ -221,11 +218,11 @@ class FbOptionRow extends StatelessWidget {
               const SizedBox(width: 12.8),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
-                width: 21.6,
-                height: 21.6,
+                width: 24,
+                height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: selected ? c.blue : const Color(0xFFD1D6DB), width: selected ? 6.7 : 2),
+                  border: Border.all(color: selected ? c.blue : c.faint, width: selected ? 7 : 2),
                 ),
               ),
             ],

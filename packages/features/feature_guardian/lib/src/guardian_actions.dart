@@ -23,17 +23,6 @@ Future<void> decideRequest(BuildContext context, String requestId, {required boo
   }
 }
 
-/// ARS 전화에서 번호를 누른 것처럼 응답합니다 (1: 승인, 2: 거절).
-Future<void> answerArs(BuildContext context, String requestId, String digit) async {
-  final shell = context.read<ShellCubit>();
-  try {
-    final r = await context.read<FamilyCubit>().answerArs(requestId, digit);
-    shell.say(r.status == 'approved' ? 'ARS로 승인했어요' : 'ARS로 거절했어요', vibrate: const [60]);
-  } on ApiException catch (e) {
-    shell.say(e.code == 'done' ? '이미 처리된 요청이에요' : e.message);
-  }
-}
-
 Future<void> guardianRun(BuildContext context, Future<void> Function(FamilyCubit) action, String done) async {
   final shell = context.read<ShellCubit>();
   try {

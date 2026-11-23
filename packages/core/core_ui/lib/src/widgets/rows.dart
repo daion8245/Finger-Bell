@@ -30,7 +30,7 @@ class TxLogo extends StatelessWidget {
         decoration: BoxDecoration(color: blue ? c.blueSoft : c.soft, shape: BoxShape.circle),
         child: icon != null
             ? Icon(icon, size: size * .44, color: fg)
-            : Text(text ?? '', style: TextStyle(fontSize: 15.2, fontWeight: FontWeight.w700, color: fg)),
+            : Text(text ?? '', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: fg)),
       ),
     );
   }
@@ -56,7 +56,7 @@ class FbListRow extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.chevron = false,
-    this.padding = const EdgeInsets.symmetric(vertical: 13.6),
+    this.padding = const EdgeInsets.symmetric(vertical: 14),
   });
 
   @override
@@ -67,7 +67,7 @@ class FbListRow extends StatelessWidget {
       child: Row(
         children: [
           leading,
-          const SizedBox(width: 13.6),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,7 +79,7 @@ class FbListRow extends StatelessWidget {
                   child: title,
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 3.2),
+                  const SizedBox(height: 2),
                   Text(subtitle!, style: subtitleStyle ?? FbText.rowSub(c)),
                 ],
               ],
@@ -109,25 +109,29 @@ class FbRowLink extends StatelessWidget {
     final c = context.fb;
     return Material(
       color: c.card,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 21.6, vertical: 17.6),
+          constraints: const BoxConstraints(minHeight: 72),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: c.cardBorder != null
-              ? BoxDecoration(borderRadius: BorderRadius.circular(22), border: Border.all(color: c.cardBorder!, width: 2))
+              ? BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: c.cardBorder!, width: c.cardBorderWidth),
+                )
               : null,
           child: Row(
             children: [
-              if (leading != null) ...[leading!, const SizedBox(width: 13.6)],
+              if (leading != null) ...[leading!, const SizedBox(width: 12)],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: TextStyle(fontSize: 15.7, fontWeight: FontWeight.w700, color: c.ink)),
+                    Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: c.ink)),
                     if (subtitle != null) ...[
-                      const SizedBox(height: 3.2),
+                      const SizedBox(height: 2),
                       Text(subtitle!, style: FbText.small(c)),
                     ],
                   ],
@@ -142,7 +146,8 @@ class FbRowLink extends StatelessWidget {
   }
 }
 
-/// 상단 안내 배너 (.banner). 한 번에 하나만 보여 줍니다.
+/// 상단 안내 배너. 피그마 StatusBanner처럼 왼쪽 인디고 포인트 + 방패, 위험이면 코랄 바탕.
+/// 한 번에 하나만 보여 줍니다.
 class FbBanner extends StatelessWidget {
   final String title;
   final String? sub;
@@ -170,20 +175,27 @@ class FbBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.fb;
+    // 위험 배너는 호출부가 제목을 redStrong으로 칠해 알려 줍니다.
+    final danger = titleColor == c.redStrong;
+    final icon = leading ?? (live ? null : Icon(FbIcons.shield, size: 18, color: danger ? c.redStrong : c.blue));
     return Semantics(
       liveRegion: true,
       child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: danger ? c.redSoft : c.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: danger ? BorderSide.none : BorderSide(color: c.cardBorder ?? c.line, width: c.cardBorderWidth),
+        ),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
           onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12.8, 12, 12.8),
+          child: Container(
+            decoration: BoxDecoration(border: Border(left: BorderSide(color: c.blue, width: 4))),
+            padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
             child: Row(
               children: [
-                if (live) ...[const LiveDot(), const SizedBox(width: 9.6)],
-                if (leading != null) ...[leading!, const SizedBox(width: 9.6)],
+                if (live) ...[const LiveDot(), const SizedBox(width: 10)],
+                if (icon != null) ...[icon, const SizedBox(width: 10)],
                 Expanded(
                   child: Text.rich(
                     TextSpan(
@@ -192,10 +204,10 @@ class FbBanner extends StatelessWidget {
                           text: title,
                           style: TextStyle(fontWeight: FontWeight.w700, color: titleColor ?? c.ink),
                         ),
-                        if (sub != null) TextSpan(text: '\n$sub', style: TextStyle(color: c.muted)),
+                        if (sub != null) TextSpan(text: '\n$sub', style: TextStyle(fontSize: 13, color: c.muted)),
                       ],
                     ),
-                    style: const TextStyle(fontSize: 13.4, height: 1.45),
+                    style: const TextStyle(fontSize: 15, height: 1.45),
                   ),
                 ),
                 if (actionLabel != null)
@@ -204,8 +216,8 @@ class FbBanner extends StatelessWidget {
                     style: TextButton.styleFrom(
                       foregroundColor: c.blue,
                       padding: const EdgeInsets.symmetric(horizontal: 6),
-                      minimumSize: const Size(44, 32),
-                      textStyle: const TextStyle(fontFamily: FbTheme.fontFamily, fontSize: 12.8, fontWeight: FontWeight.w700),
+                      minimumSize: const Size(48, 40),
+                      textStyle: const TextStyle(fontFamily: FbTheme.fontFamily, fontSize: 14, fontWeight: FontWeight.w700),
                     ),
                     child: Text(actionLabel!),
                   ),
