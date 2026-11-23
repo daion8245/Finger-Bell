@@ -11,7 +11,7 @@
 | `app/domain/call.py` | 통화 1차 규칙 판정(기관 사칭·안전 계좌·해지/대출 요구·비밀 강요·재촉), 시연 통화 대본(사기·정상), 9절 정확도·오탐 검증용 가상 문장 모음 |
 | `app/domain/fds.py` | AI FDS: 규칙 점수 + 사용자별 Isolation Forest (scikit-learn) |
 | `app/domain/catalog.py` | 안심 모드, 업종 MCC, 시연 가맹점 |
-| `app/integrations.py` | 오픈뱅킹 · FCM · SMS 어댑터(모의)와 OpenRouter LLM · 음성인식(STT) 게이트웨이(키가 없으면 모의, `OPENROUTER_API_KEY`가 있으면 OpenRouter 호출, 모델 기본값 `FINGERBELL_LLM_MODEL=anthropic/claude-haiku-5.5`, `FINGERBELL_STT_MODEL=openai/whisper-large-v3`) |
+| `app/integrations.py` | 오픈뱅킹 · FCM · SMS 어댑터(모의)와 OpenRouter LLM · 음성인식(STT) 게이트웨이(키가 없으면 모의, `OPENROUTER_API_KEY`(환경변수 또는 저장소에 올리지 않는 `backend/.env`)가 있으면 OpenRouter 호출, 모델 기본값 `FINGERBELL_LLM_MODEL=google/gemini-3.8-flash`, `FINGERBELL_STT_MODEL=microsoft/mai-transcribe-2`) |
 | `app/seed.py` | 시연 가족(김사랑 보호자, 김순자 어르신, 이민준 아이), 초기 정상 문자, FDS 학습용 과거 거래 |
 | `scripts/eval_llm.py` | `OPENROUTER_API_KEY`가 있을 때 사람이 직접 실행하는 LLM 정확도·오탐·3회 일관성 평가 스크립트 |
 | `tests/` | pytest 테스트 (규칙 단계 검증, LLM/STT 실패 대체, 대표 시나리오 종단 통합 테스트 `test_stage8_scenario.py` 포함) |

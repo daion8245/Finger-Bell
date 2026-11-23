@@ -305,9 +305,9 @@ IntelliJ의 `.run/FingerBell_Android.run.xml` (**FingerBell (Android)**)도 `run
 
 | 이름 | 기본값 | 설명 |
 | :--- | :--- | :--- |
-| `OPENROUTER_API_KEY` | 빈 값 (모의 동작) | OpenRouter API 비밀키. 설정하지 않으면 모의 LLM·음성인식 게이트웨이로 뜨며 규칙 판정만으로 동작합니다 |
-| `FINGERBELL_LLM_MODEL` | `anthropic/claude-haiku-5.5` | OpenRouter 채팅 완성 모델 (다른 후보: `google/gemini-3.8-flash`, `upstage/solar-mini4`. 최종 선택은 사람이 정합니다) |
-| `FINGERBELL_STT_MODEL` | `openai/whisper-large-v3` | OpenRouter 음성인식 모델 (다른 후보: `microsoft/mai-transcribe-2`, `openai/whisper-1`. 최종 선택은 사람이 정합니다) |
+| `OPENROUTER_API_KEY` | 빈 값 (모의 동작) | OpenRouter API 비밀키. 설정하지 않으면 모의 LLM·음성인식 게이트웨이로 뜨며 규칙 판정만으로 동작합니다. 저장소에 올리지 않는 `backend/.env`에 `OPENROUTER_API_KEY=sk-or-...`로 적어 두면 서버가 켜질 때 읽습니다(환경변수가 우선) |
+| `FINGERBELL_LLM_MODEL` | `google/gemini-3.8-flash` | OpenRouter 채팅 완성 모델 (추론은 `minimal`로 낮춰 5초 제한 안에 답하게 합니다) |
+| `FINGERBELL_STT_MODEL` | `microsoft/mai-transcribe-2` | OpenRouter 음성인식 모델 |
 | `FINGERBELL_DATABASE_URL` | `sqlite:///backend/fingerbell.db` | PostgreSQL은 `postgresql+psycopg://...` (`psycopg[binary]` 설치) |
 | `FINGERBELL_HOLD_SECONDS` | `1800` | 거래 보류 유지 시간(초, 기본 30분) |
 | `FINGERBELL_RECONFIRM_SECONDS` | `86400` | 보류 후 본인 재확인 대기 만료 시간(초, 기본 24시간) |
@@ -337,7 +337,6 @@ melos run test
 
 아래 결정 사항은 코드에 기본값·가상 규칙으로만 두었고 최종 결정은 사람이 정합니다.
 
-- OpenRouter에서 쓸 LLM과 음성인식(STT) 모델
 - 서비스 이름 (지금은 팀 이름인 핑거벨을 사용)
 - 감시 우려(개인정보) 대응 원칙 (기본값은 원문 비저장·요약 기록과 보호자 연결 동의 화면)
 - 탐지 정확도와 오탐의 목표 수치 (현재 규칙 단계 검사는 `pytest`, LLM 평가는 `backend/scripts/eval_llm.py`로 수치 출력)

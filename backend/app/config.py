@@ -1,4 +1,7 @@
-"""환경변수 기반 설정. 값은 FINGERBELL_ 접두어와 OPENROUTER_API_KEY를 씁니다."""
+"""환경변수 기반 설정. 값은 FINGERBELL_ 접두어와 OPENROUTER_API_KEY를 씁니다.
+
+backend/.env(저장소에 올리지 않음)에 `이름=값`을 적어 두면 서버가 켜질 때 읽습니다. 이미 설정된 환경변수가 우선합니다.
+"""
 
 from __future__ import annotations
 
@@ -8,8 +11,19 @@ from pathlib import Path
 
 # 기본 DB는 실행 위치와 상관없이 backend/fingerbell.db
 DEFAULT_DATABASE_URL = f"sqlite:///{(Path(__file__).resolve().parents[1] / 'fingerbell.db').as_posix()}"
-DEFAULT_LLM_MODEL = "anthropic/claude-haiku-5.5"
-DEFAULT_STT_MODEL = "openai/whisper-large-v3"
+DEFAULT_LLM_MODEL = "google/gemini-3.8-flash"
+DEFAULT_STT_MODEL = "microsoft/mai-transcribe-2"
+ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+
+
+def _load_env_file() -> None:
+    if not ENV_FILE.is_file():
+        return
+    for line in ENV_FILE.read_text(encoding="utf-8-sig").splitlines():
+        name, sep, value = line.partition("=")
+        name = name.strip()
+        if sep and name and not name.startswith("#"):
+            os.environ.setdefault(name, value.strip().strip("\"'"))
 
 
 def _int(name: str, default: int) -> int:
@@ -49,6 +63,7 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> "Settings":
+        _load_env_file()
         origins = os.getenv("FINGERBELL_CORS_ORIGINS", "*")
         model = (os.getenv("FINGERBELL_LLM_MODEL") or "").strip() or cls.llm_model
         stt_model = (os.getenv("FINGERBELL_STT_MODEL") or "").strip() or cls.stt_model
