@@ -18,7 +18,9 @@
 
 ## 실행
 
-저장소 루트에서 `.\run-backend.ps1`을 쓰는 것이 가장 쉽습니다. 직접 실행하려면:
+IntelliJ에서 **FingerBell (Start Server)**를 선택하고 **Run**을 누릅니다. 같은 Wi-Fi의 기기로 시연할 때는 **FingerBell (Start Server LAN)**을 실행합니다. 두 구성은 포트 `8765`를 씁니다.
+
+PowerShell에서는 저장소 루트에서 `.\run-backend.ps1`을 실행합니다. Python 환경을 직접 준비할 수도 있습니다.
 
 ```powershell
 cd backend

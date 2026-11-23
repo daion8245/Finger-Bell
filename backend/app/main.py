@@ -15,7 +15,7 @@ from sqlalchemy import inspect, select
 
 from . import clock
 from .config import Settings
-from .db import Base, make_engine, make_session_factory
+from .db import Base, begin_read_snapshot, make_engine, make_session_factory
 from .domain.fds import FdsEngine
 from .events import EventHub
 from .integrations import Gateways, make_gateways
@@ -50,7 +50,7 @@ from .schemas import (
     TransferDraft,
     UnfreezeBody,
 )
-from .seed import reset_schema, schema_outdated, seed
+from .seed import reset_demo_data, reset_schema, schema_outdated, seed
 from .service import DomainError, FamilyService
 
 log = logging.getLogger("fingerbell")
@@ -69,7 +69,7 @@ def create_app(settings: Settings | None = None, gateways: Gateways | None = Non
             log.warning("DB 구조가 바뀌어 시연 데이터를 새로 만듭니다")
             reset_schema(engine)
         Base.metadata.create_all(engine)
-        with sessions() as s:
+        with sessions.begin() as s:
             if s.scalars(select(Guardian).limit(1)).first() is None:
                 seed(s)
 
@@ -152,6 +152,7 @@ def create_app(settings: Settings | None = None, gateways: Gateways | None = Non
 
     @api.get("/state")
     def state(svc: FamilyService = Depends(service)):
+        begin_read_snapshot(svc.s)
         return svc.snapshot()
 
     # ---------------- 핵심 기능 1: 원터치 SOS 계좌 동결
@@ -461,12 +462,11 @@ def create_app(settings: Settings | None = None, gateways: Gateways | None = Non
 
     @api.post("/demo/reset")
     def demo_reset():
-        reset_schema(engine)
+        with sessions.begin() as s:
+            reset_demo_data(s)
         fds.reset()
         gateways.llm.reset()
         gateways.stt.reset()
-        with sessions() as s:
-            seed(s)
         hub.publish([{"type": "reset", "message": "시연 데이터를 처음 상태로 되돌렸어요"}])
         return {"status": "done"}
 

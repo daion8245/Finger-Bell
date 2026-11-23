@@ -105,6 +105,15 @@ def reset_schema(engine) -> None:
     Base.metadata.create_all(engine)
 
 
+def reset_demo_data(session: Session) -> None:
+    if session.get_bind().dialect.name == "postgresql":
+        # 초기화 요청끼리는 순서를 보장하고, 상태 조회는 계속 허용합니다.
+        session.connection().exec_driver_sql("LOCK TABLE guardians IN SHARE ROW EXCLUSIVE MODE")
+    for table in reversed(Base.metadata.sorted_tables):
+        session.execute(table.delete())
+    seed(session)
+
+
 def schema_outdated(engine) -> bool:
     """예전 버전이 만든 DB인지 (지금 테이블이나 컬럼이 빠져 있으면). 시연 데이터라 새로 만들면 됩니다."""
     db = inspect(engine)
@@ -347,4 +356,3 @@ def seed(session: Session) -> None:
                 at=ago(hours_ago),
             )
         )
-    session.commit()

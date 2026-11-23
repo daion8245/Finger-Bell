@@ -1,3 +1,10 @@
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier, BrokenBarrierError
+
+import pytest
+
+from app.service import FamilyService
+
 from .conftest import member, state
 
 
@@ -34,6 +41,52 @@ def test_allowed_payment_goes_through(client):
     before = member(state(client), "child")["balance"]
     assert pay(client, "child", "c-bus")["ok"] is True
     assert member(state(client), "child")["balance"] == before - 1450
+
+
+@pytest.mark.parametrize(
+    ("member_id", "merchants", "second_route", "daily_limit", "expected_codes"),
+    [
+        ("senior", ("s-clinic", "s-pharmacy"), "request-approval", None, ["ok", "ok"]),
+        ("child", ("c-bus", "c-stationery"), "pay", 12_000, ["limit", "ok"]),
+    ],
+)
+def test_concurrent_payments_respect_balance_and_daily_limit(
+    client, monkeypatch, member_id, merchants, second_route, daily_limit, expected_codes
+):
+    if daily_limit is not None:
+        response = client.post(
+            "/api/v1/guardian/limits", json={"member_id": member_id, "daily_limit": daily_limit}
+        )
+        assert response.status_code == 200
+    before = member(state(client), member_id)
+    debit = FamilyService._do_payment
+    checked = Barrier(2)
+
+    def pause_after_check(self, m, mc):
+        # 잠금이 빠지면 두 요청이 모두 같은 잔액과 사용액을 읽은 뒤 여기 도달합니다.
+        try:
+            checked.wait(timeout=1)
+        except BrokenBarrierError:
+            pass
+        return debit(self, m, mc)
+
+    monkeypatch.setattr(FamilyService, "_do_payment", pause_after_check)
+
+    def submit(route, merchant_id):
+        response = client.post(f"/api/v1/payments/{route}", json={"member_id": member_id, "merchant_id": merchant_id})
+        assert response.status_code == 200, response.text
+        return response.json()
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        first = executor.submit(submit, "pay", merchants[0])
+        second = executor.submit(submit, second_route, merchants[1])
+        results = [first.result(), second.result()]
+
+    assert sorted(result["code"] for result in results) == expected_codes
+    amount = sum(result["merchant"]["amount"] for result in results if result["ok"])
+    after = member(state(client), member_id)
+    assert after["balance"] == before["balance"] - amount
+    assert after["spent_today"] == before["spent_today"] + amount
 
 
 def test_blocked_payment_can_be_approved_by_guardian(client):

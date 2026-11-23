@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, create_engine
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.types import TypeDecorator
 
 
@@ -41,3 +41,14 @@ def make_engine(url: str) -> Engine:
 
 def make_session_factory(engine: Engine) -> sessionmaker:
     return sessionmaker(bind=engine, expire_on_commit=False)
+
+
+def begin_read_snapshot(session: Session) -> None:
+    dialect = session.get_bind().dialect.name
+    if dialect == "sqlite":
+        # sqlite3의 기본 모드에서는 첫 SELECT로 읽기 트랜잭션이 시작되지 않습니다.
+        connection = session.connection()
+        if not connection.connection.driver_connection.in_transaction:
+            connection.exec_driver_sql("BEGIN")
+    elif dialect == "postgresql":
+        session.connection(execution_options={"isolation_level": "REPEATABLE READ"})
