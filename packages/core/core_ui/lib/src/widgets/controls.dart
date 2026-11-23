@@ -87,20 +87,20 @@ class FbSegmented<T> extends StatelessWidget {
           onTap: () => onChanged(v),
         ),
     ];
-    return Container(
+    final box = Container(
       padding: EdgeInsets.all(compact ? 3 : 4),
       decoration: BoxDecoration(
-        color: background ?? (compact ? const Color(0xFFE5E9EF) : c.soft),
-        borderRadius: BorderRadius.circular(compact ? 11 : 12),
+        color: background ?? c.soft,
+        borderRadius: BorderRadius.circular(compact ? 99 : 12),
+        border: c.cardBorder != null ? Border.all(color: c.cardBorder!) : null,
       ),
       child: Row(
         mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
-        children: [
-          for (final w in children)
-            compact ? Flexible(fit: FlexFit.loose, child: w) : Expanded(child: w),
-        ],
+        children: [for (final w in children) compact ? w : Expanded(child: w)],
       ),
     );
+    // compact(상단 사용자 전환)는 글자 폭만큼만 차지하고, 자리가 모자라면 통째로 줄여 한 줄에 둡니다.
+    return compact ? FittedBox(fit: BoxFit.scaleDown, child: box) : box;
   }
 }
 
@@ -126,10 +126,13 @@ class _SegButton extends StatelessWidget {
           constraints: BoxConstraints(minWidth: compact ? 44 : 57, minHeight: compact ? 48 : 57),
           alignment: Alignment.center,
           padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 6, vertical: compact ? 8 : 10),
+          // compact(상단 사용자 전환)는 Figma처럼 선택된 칸을 남보라로 채웁니다.
           decoration: BoxDecoration(
-            color: selected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(compact ? 8 : 9),
-            boxShadow: selected ? const [BoxShadow(color: Color(0x1A141E32), blurRadius: 2, offset: Offset(0, 1))] : null,
+            color: selected ? (compact ? c.blue : Colors.white) : Colors.transparent,
+            borderRadius: BorderRadius.circular(compact ? 99 : 9),
+            boxShadow: selected && !compact
+                ? const [BoxShadow(color: Color(0x1A141E32), blurRadius: 2, offset: Offset(0, 1))]
+                : null,
           ),
           child: Text(
             label,
@@ -139,7 +142,7 @@ class _SegButton extends StatelessWidget {
             style: TextStyle(
               fontSize: compact ? 12.5 : 14.1,
               fontWeight: FontWeight.w700,
-              color: selected ? c.ink : c.muted,
+              color: selected ? (compact ? Colors.white : c.blueStrong) : c.muted,
             ),
           ),
         ),
@@ -174,9 +177,9 @@ class FbFilterChips extends StatelessWidget {
                 constraints: const BoxConstraints(minWidth: 57, minHeight: 57),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: key == active ? c.ink : c.soft,
+                  color: key == active ? c.blue : c.card,
                   borderRadius: BorderRadius.circular(99),
-                  border: c.cardBorder != null ? Border.all(color: c.cardBorder!) : null,
+                  border: Border.all(color: c.cardBorder ?? (key == active ? c.blue : c.line)),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -251,7 +254,7 @@ class FbOptionRow extends StatelessWidget {
                 height: 21.6,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: selected ? c.blue : const Color(0xFFD1D6DB), width: selected ? 6.7 : 2),
+                  border: Border.all(color: selected ? c.blue : c.faint, width: selected ? 6.7 : 2),
                 ),
               ),
             ],

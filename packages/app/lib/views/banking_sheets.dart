@@ -1662,35 +1662,55 @@ class _HoldWaitingPanelState extends State<_HoldWaitingPanel> {
         ],
       );
     }
+    // Figma "30분 동안 보류했어요": 원형 카운트다운 + 보호자 알림 + [취소(되돌리기)].
+    final expires = req?.expiresAt;
+    final total = expires == null ? Duration.zero : expires.difference(req!.createdAt);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SheetHead(onClose: widget.onClose),
-        CenterBlock(
-          icon: const ResultIcon(FbIcons.clock, tone: ResultTone.soft, ringing: true),
-          title: '거래를 30분 동안 보류했어요',
-          body: '${req?.easyExplanation ?? ''}\n${widget.data.guardian.name}님께 알림을 보냈어요.',
+        Row(
+          children: [
+            ExcludeSemantics(child: Icon(Icons.verified_user_outlined, size: 16, color: c.blue)),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text('핑거벨 · 거래 보호', style: TextStyle(fontSize: 13.2, fontWeight: FontWeight.w700, color: c.blueStrong)),
+            ),
+          ],
         ),
-        if (req?.expiresAt != null)
-          Wrap(
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text('보류 남은 시간 · ', style: FbText.hint(c)),
-              CountdownText(
-                until: req!.expiresAt!,
-                now: context.read<FamilyCubit>().now,
-                format: formatMinSec,
-                style: FbText.hint(c).copyWith(fontWeight: FontWeight.w800, color: c.ink2),
-              ),
-            ],
+        const SizedBox(height: 8),
+        Semantics(
+          liveRegion: true,
+          header: true,
+          child: Text(
+            '거래를 30분 동안 보류했어요',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -.6, height: 1.35, color: c.ink),
           ),
+        ),
+        if (expires != null) ...[
+          const SizedBox(height: 20),
+          CountdownRing(
+            until: expires,
+            now: context.read<FamilyCubit>().now,
+            total: total > Duration.zero ? total : const Duration(minutes: 30),
+            caption: '보류 남은 시간',
+          ),
+        ],
+        const SizedBox(height: 20),
+        if ((req?.easyExplanation ?? '').isNotEmpty) ...[
+          Text(req!.easyExplanation, style: FbText.body(c)),
+          const SizedBox(height: 4),
+        ],
+        Text(
+          '${widget.data.guardian.name}님께 알림을 보냈어요. 확인하면 바로 알려드려요.',
+          style: FbText.body(c).copyWith(fontWeight: FontWeight.w700, color: c.ink),
+        ),
         const SizedBox(height: 20),
         if (req != null) ...[
-          FbButton.gray('취소', busy: _busy, onPressed: () => _cancel(req.id)),
+          FbButton('취소', busy: _busy, onPressed: () => _cancel(req.id)),
           const SizedBox(height: 8),
         ],
-        FbButton(
+        FbButton.gray(
           '보호자 화면에서 확인하기 (시연)',
           onPressed: () => context.read<ShellCubit>().goto(Persona.guardian, AppTab.home),
         ),

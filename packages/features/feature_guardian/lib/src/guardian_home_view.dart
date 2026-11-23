@@ -102,33 +102,38 @@ class _GuardianCautionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.fb;
     final inc = incident;
+    // Figma 주의 모드 카드: 노란 바탕 (보류·위험은 빨강, 주의 모드는 노랑).
     return FbCard(
-      color: c.redSoft,
+      color: c.warningSoft,
+      borderColor: c.warning,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Icon(FbIcons.alert, size: 19, color: c.redStrong),
+              ExcludeSemantics(child: Icon(Icons.verified_user_outlined, size: 20, color: c.warningStrong)),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '${member.label} · 주의 모드 작동 중',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: c.redStrong),
+                  style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800, color: c.ink),
                 ),
               ),
+              const SizedBox(width: 8),
+              FbPill('24시간', background: c.warning, foreground: c.ink),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Wrap(
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Text('주의 모드 남은 시간 ', style: TextStyle(fontSize: 13.6, color: c.ink2)),
+              Text('남은 시간 ', style: TextStyle(fontSize: 14.4, fontWeight: FontWeight.w700, color: c.warningStrong)),
               if (member.cautionUntil != null)
                 CountdownText(
                   until: member.cautionUntil!,
                   now: now,
-                  style: TextStyle(fontSize: 13.6, fontWeight: FontWeight.w800, color: c.ink2),
+                  format: formatHourMin,
+                  style: TextStyle(fontSize: 14.4, fontWeight: FontWeight.w800, color: c.warningStrong),
                 ),
             ],
           ),
@@ -144,7 +149,7 @@ class _GuardianCautionCard extends StatelessWidget {
                 ),
                 FbTextButton(
                   '자세히 보기',
-                  color: c.redStrong,
+                  color: c.blueStrong,
                   onPressed: () => openIncidentSummarySheet(
                     context,
                     incidentId: inc.id,

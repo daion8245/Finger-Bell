@@ -220,12 +220,8 @@ void main() {
     );
     await _settle(tester);
 
-    // 1. 일반 홈의 [문자] 카드
-    await tester.ensureVisible(find.text('문자'));
-    await tester.pump();
-    await tester.tap(find.text('문자'));
-    await _settle(tester);
-    expect(opened.last, Uri.parse('fingerbell://sms'));
+    // 1. 문자는 별도 앱이라 핑거벨 홈에 [문자] 진입점이 없습니다.
+    expect(find.text('문자'), findsNothing);
 
     // 2. 안심 탭의 보호자 카드 [전화]
     shell.switchTab(AppTab.safety);
@@ -266,12 +262,6 @@ void main() {
 
     // 5. 대상 앱이 설치되어 있지 않아 열기에 실패하면 쉬운 말 한 줄 안내를 보여 줍니다.
     missingApp = true;
-    await tester.ensureVisible(find.text('문자'));
-    await tester.pump();
-    await tester.tap(find.text('문자'));
-    await _settle(tester);
-    expect(messages.last, '핑거벨 문자 앱이 설치되어 있지 않아 열 수 없어요');
-
     shell.switchTab(AppTab.safety);
     await _settle(tester);
     await tester.ensureVisible(find.text('전화'));

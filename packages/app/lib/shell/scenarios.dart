@@ -39,7 +39,8 @@ void _announceSms(ShellCubit shell, SmsMessage msg) {
         vibrate: const [60],
       );
     case SmsRiskLevel.low:
-      shell.say('${msg.displaySender} 문자가 도착했어요');
+      // 일반 문자는 문자 앱이 알립니다. 핑거벨은 위험·주의 문자만 알립니다.
+      break;
   }
 }
 

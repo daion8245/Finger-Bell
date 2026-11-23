@@ -12,7 +12,7 @@ Future<T?> showFbSheet<T>(BuildContext context, {required WidgetBuilder builder}
     isScrollControlled: true,
     useSafeArea: true,
     barrierColor: const Color(0x6B152338),
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
     clipBehavior: Clip.antiAlias,
     constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * .9),
     builder: (ctx) => Padding(
@@ -28,7 +28,7 @@ Future<T?> showFbSheet<T>(BuildContext context, {required WidgetBuilder builder}
                 width: 40,
                 height: 5,
                 margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(color: const Color(0xFFE2E6EB), borderRadius: BorderRadius.circular(9)),
+                decoration: BoxDecoration(color: ctx.fb.line, borderRadius: BorderRadius.circular(9)),
               ),
             ),
             builder(ctx),

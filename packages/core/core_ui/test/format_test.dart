@@ -23,6 +23,33 @@ void main() {
     expect(formatMinSec(const Duration(seconds: 161)), '2:41');
   });
 
+  test('formatHourMin reads like Figma "23시간 58분"', () {
+    expect(formatHourMin(const Duration(hours: 23, minutes: 58, seconds: 40)), '23시간 58분');
+    expect(formatHourMin(const Duration(hours: 2)), '2시간');
+    expect(formatHourMin(const Duration(minutes: 41)), '41분');
+    expect(formatHourMin(const Duration(seconds: 30)), '1분 미만');
+    expect(formatHourMin(const Duration(seconds: -5)), '1분 미만');
+  });
+
+  testWidgets('CountdownRing and RiskLevelMeter expose readable semantics', (tester) async {
+    final now = DateTime(2026, 1, 1, 10);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: FbTheme.build(),
+        home: Scaffold(
+          body: Column(
+            children: [
+              CountdownRing(until: now.add(const Duration(minutes: 29, seconds: 12)), now: () => now, caption: '보류 남은 시간'),
+              const RiskLevelMeter(level: 2),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(find.bySemanticsLabel('보류 남은 시간, 남은 시간 29:12'), findsOneWidget);
+    expect(find.bySemanticsLabel('위험 단계 위험'), findsOneWidget);
+  });
+
   test('ThousandsFormatter keeps only digits', () {
     const f = ThousandsFormatter();
     final v = f.formatEditUpdate(TextEditingValue.empty, const TextEditingValue(text: '50a0000'));

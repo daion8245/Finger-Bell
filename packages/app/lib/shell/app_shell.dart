@@ -190,6 +190,8 @@ class _AppShellState extends State<AppShell>
           final danger = e.type == 'freeze' || (e.type == 'sms' && e.level == 'danger');
           shell.say(e.message, vibrate: vib, alertSound: danger);
         } else if (mine != null && mine == e.memberId && forMember.contains(e.type)) {
+          // 일반 문자 도착 알림은 문자 앱의 몫입니다. 핑거벨은 위험·주의 문자만 알립니다.
+          if (e.type == 'sms' && e.level != 'danger' && e.level != 'caution') return;
           final dangerSms = e.type == 'sms' && e.level == 'danger';
           final vib = dangerSms ? const [80, 40, 80] : const [60];
           shell.say(e.message, vibrate: vib, alertSound: dangerSms || e.type == 'freeze');

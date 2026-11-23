@@ -121,16 +121,17 @@ class FbRowLink extends StatelessWidget {
       enabled: onTap != null,
       child: Material(
         color: c.card,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(16),
           onTap: onTap,
           child: Container(
             constraints: const BoxConstraints(minHeight: 57),
-            padding: const EdgeInsets.symmetric(horizontal: 21.6, vertical: 17.6),
-            decoration: c.cardBorder != null
-                ? BoxDecoration(borderRadius: BorderRadius.circular(22), border: Border.all(color: c.cardBorder!, width: 2))
-                : null,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: c.cardBorder != null ? Border.all(color: c.cardBorder!, width: 2) : Border.all(color: c.line),
+            ),
             child: Row(
               children: [
                 if (leading != null) ...[leading!, const SizedBox(width: 13.6)],
@@ -187,10 +188,13 @@ class FbBanner extends StatelessWidget {
     return Semantics(
       liveRegion: true,
       child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: c.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(color: c.cardBorder ?? c.line, width: c.cardBorder != null ? 2 : 1),
+        ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12.8, 12, 12.8),

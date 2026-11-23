@@ -929,12 +929,13 @@ class _CallWarningBanner extends StatelessWidget {
       label: '보이스피싱 위험 경고. $explanation',
       child: FocusTraversalGroup(
         policy: OrderedTraversalPolicy(),
+        // Figma S2-03: 위쪽 빨간 머리("사기 전화일 수 있어요") + 아래 흰 본문(이유·통화 끊기).
         child: Container(
-          padding: const EdgeInsets.all(20),
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: redColor, width: 1.5),
+            border: Border.all(color: c.cardBorder ?? redColor, width: 1.5),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.32),
@@ -946,43 +947,57 @@ class _CallWarningBanner extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  Semantics(
-                    label: '위험 경고',
-                    child: Icon(FbIcons.alert, size: 26, color: redColor),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '보이스피싱 위험 경고',
-                      style: TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.w800,
-                        color: redColor,
-                      ),
+              Container(
+                color: c.redStrong,
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Semantics(
+                          label: '위험 경고',
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                            child: Icon(Icons.gpp_maybe_outlined, size: 24, color: c.redStrong),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            '보이스피싱 위험 경고',
+                            style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: Colors.white),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                explanation,
-                style: TextStyle(
-                  fontSize: 15.2,
-                  height: 1.5,
-                  fontWeight: FontWeight.w700,
-                  color: c.ink,
+                    const SizedBox(height: 10),
+                    const Text(
+                      '사기 전화일 수 있어요',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -.6, color: Colors.white),
+                    ),
+                  ],
                 ),
               ),
-              if (reasons.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                for (final reason in reasons)
-                  BulletText(
-                    reason,
-                    style: TextStyle(fontSize: 13.4, height: 1.5, color: c.ink2, fontWeight: FontWeight.w600),
-                  ),
-              ],
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      explanation,
+                      style: TextStyle(fontSize: 15.2, height: 1.5, fontWeight: FontWeight.w700, color: c.ink),
+                    ),
+                    if (reasons.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      for (final reason in reasons)
+                        BulletText(
+                          reason,
+                          style: TextStyle(fontSize: 13.4, height: 1.5, color: c.ink2, fontWeight: FontWeight.w600),
+                        ),
+                    ],
               const SizedBox(height: 16),
               Focus(
                 focusNode: hangupFocus,
@@ -1012,6 +1027,9 @@ class _CallWarningBanner extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               FraudHelpButton(onCallGuardian: onCallGuardian),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

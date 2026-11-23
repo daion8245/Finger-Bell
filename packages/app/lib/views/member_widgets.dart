@@ -12,51 +12,74 @@ import '../app_links.dart';
 import 'banking_sheets.dart';
 
 /// 본인 홈에 보이는 주의 모드 카드 (기획서 5.1: 상태와 남은 시간 표시, 본인은 끌 수 없음).
+/// Figma "주의 모드가 켜졌어요": 노란 카드, 24시간 표시, 남은 시간 막대.
 class CautionModeCard extends StatelessWidget {
   final Member member;
   final DateTime Function() now;
 
   const CautionModeCard({super.key, required this.member, required this.now});
 
+  static const _window = Duration(hours: 24);
+
   @override
   Widget build(BuildContext context) {
     final c = context.fb;
+    final until = member.cautionUntil;
+    final left = until?.difference(now());
     return FbCard(
-      color: c.redSoft,
+      color: c.warningSoft,
+      borderColor: c.warning,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Icon(FbIcons.alert, size: 19, color: c.redStrong),
+              ExcludeSemantics(child: Icon(Icons.verified_user_outlined, size: 20, color: c.warningStrong)),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  '주의 모드 작동 중',
-                  style: TextStyle(fontSize: 16.4, fontWeight: FontWeight.w800, color: c.redStrong),
+                child: Semantics(
+                  header: true,
+                  child: Text(
+                    '주의 모드가 켜졌어요',
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: c.ink),
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
+              FbPill('24시간', background: c.warning, foreground: c.ink),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            '사기 의심 징후가 감지되어 24시간 동안 금융 행동을 보호해요.',
-            style: TextStyle(fontSize: 13.6, height: 1.5, color: c.ink2),
-          ),
-          if (member.cautionUntil != null) ...[
-            const SizedBox(height: 6),
+          if (until != null && left != null) ...[
+            const SizedBox(height: 12),
             Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Text('남은 시간 ', style: TextStyle(fontSize: 13.6, color: c.ink2)),
+                Text('남은 시간 ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: c.warningStrong)),
                 CountdownText(
-                  until: member.cautionUntil!,
+                  until: until,
                   now: now,
-                  style: TextStyle(fontSize: 13.6, fontWeight: FontWeight.w800, color: c.ink2),
+                  format: formatHourMin,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: c.warningStrong),
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            FbRail(
+              fraction: left.inSeconds / _window.inSeconds,
+              color: c.warning,
+              semanticLabel: '주의 모드 남은 시간',
+            ),
           ],
+          const SizedBox(height: 12),
+          Text(
+            '오늘은 송금·적금 해지·대출 전에 한 번 더 확인해요',
+            style: TextStyle(fontSize: 15.2, height: 1.5, fontWeight: FontWeight.w700, color: c.ink),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '사기 의심 징후가 감지되어 24시간 동안 금융 행동을 보호해요.',
+            style: FbText.small(c).copyWith(color: c.ink2),
+          ),
         ],
       ),
     );
@@ -114,42 +137,63 @@ class _MemberHoldCardState extends State<MemberHoldCard> {
     final c = context.fb;
     final r = widget.request;
     final reconfirm = r.isReconfirm && !widget.member.isChild;
+    void callGuardian() => AppLinks.openCall(context.read<ShellCubit>(), peer: 'guardian');
+    final expires = r.expiresAt;
+    final total = expires == null ? Duration.zero : expires.difference(r.createdAt);
     return FbCard(
+      color: reconfirm ? c.redSoft : null,
+      borderColor: reconfirm ? c.red : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Icon(reconfirm ? FbIcons.alert : FbIcons.clock, size: 18, color: c.redStrong),
+              ExcludeSemantics(
+                child: Icon(
+                  reconfirm ? FbIcons.alert : Icons.verified_user_outlined,
+                  size: 18,
+                  color: reconfirm ? c.redStrong : c.blue,
+                ),
+              ),
               const SizedBox(width: 6),
-              Expanded(
+              Flexible(
                 child: Text(
-                  reconfirm ? '본인 재확인 대기' : '거래 보류 중',
-                  style: TextStyle(fontSize: 15.2, fontWeight: FontWeight.w800, color: c.redStrong),
+                  reconfirm ? '핑거벨 · 위험 판정' : '핑거벨 · 거래 보호',
+                  style: TextStyle(fontSize: 13.2, fontWeight: FontWeight.w700, color: reconfirm ? c.redStrong : c.blueStrong),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text('${r.title} · ${won(r.amount)}', style: FbText.rowTitle(c)),
+          const SizedBox(height: 8),
+          Semantics(
+            header: true,
+            child: Text(
+              reconfirm ? '본인 재확인 대기' : '거래 보류 중',
+              style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800, letterSpacing: -.5, color: c.ink),
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(r.easyExplanation, style: TextStyle(fontSize: 13.6, height: 1.55, color: c.ink2)),
-          if (!reconfirm && r.expiresAt != null) ...[
-            const SizedBox(height: 8),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text('남은 시간 ', style: FbText.small(c)),
-                CountdownText(
-                  until: r.expiresAt!,
-                  now: widget.now,
-                  format: formatMinSec,
-                  style: FbText.small(c).copyWith(fontWeight: FontWeight.w800, color: c.ink2),
-                ),
-              ],
+          Text('${r.title} · ${won(r.amount)}', style: FbText.rowTitle(c).copyWith(color: c.ink2)),
+          if (!reconfirm && expires != null) ...[
+            const SizedBox(height: 18),
+            CountdownRing(
+              until: expires,
+              now: widget.now,
+              total: total > Duration.zero ? total : const Duration(minutes: 30),
+              caption: '보류 남은 시간',
+            ),
+            const SizedBox(height: 18),
+          ] else
+            const SizedBox(height: 10),
+          Text(r.easyExplanation, style: TextStyle(fontSize: 14.4, height: 1.55, color: c.ink2)),
+          if (!reconfirm) ...[
+            const SizedBox(height: 6),
+            Text(
+              '보호자에게 알렸어요. 확인하면 바로 알려드려요.',
+              style: TextStyle(fontSize: 14.4, height: 1.55, fontWeight: FontWeight.w700, color: c.ink),
             ),
           ],
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           if (reconfirm) ...[
             FbButtonRow(
               children: [
@@ -158,28 +202,11 @@ class _MemberHoldCardState extends State<MemberHoldCard> {
               ],
             ),
             const SizedBox(height: 8),
-            FbButton.gray(
-              '보호자에게 전화',
-              icon: FbIcons.phone,
-              onPressed: _busy == null
-                  ? () => AppLinks.openCall(context.read<ShellCubit>(), peer: 'guardian')
-                  : null,
-            ),
-            const SizedBox(height: 8),
-            FraudHelpButton(
-              onCallGuardian: _busy == null
-                  ? () => AppLinks.openCall(context.read<ShellCubit>(), peer: 'guardian')
-                  : null,
-            ),
-          ] else ...[
-            FbButton.gray('취소', busy: _busy == 'cancel', onPressed: _busy == null ? _cancel : null),
-            const SizedBox(height: 8),
-            FraudHelpButton(
-              onCallGuardian: _busy == null
-                  ? () => AppLinks.openCall(context.read<ShellCubit>(), peer: 'guardian')
-                  : null,
-            ),
-          ],
+            FbButton('보호자에게 전화', icon: FbIcons.phone, onPressed: _busy == null ? callGuardian : null),
+          ] else
+            FbButton('취소', busy: _busy == 'cancel', onPressed: _busy == null ? _cancel : null),
+          const SizedBox(height: 8),
+          FraudHelpButton(onCallGuardian: _busy == null ? callGuardian : null),
         ],
       ),
     );
@@ -482,27 +509,6 @@ class SosSlot extends StatelessWidget {
           button,
         ],
       ),
-    );
-  }
-}
-
-/// 어르신 홈에서 한 번에 들어가는 문자 진입점 (기획서 5.2, 7.1).
-class SmsEntryCard extends StatelessWidget {
-  final Member member;
-  const SmsEntryCard({super.key, required this.member});
-
-  @override
-  Widget build(BuildContext context) {
-    final dangerCount = member.dangerSmsCount;
-    final total = member.smsMessages.length;
-    final sub = dangerCount > 0
-        ? '사기 의심 경고 $dangerCount건 · 눌러서 확인하세요'
-        : '받은 문자 $total건 · 사기 문자를 자동으로 살펴봐요';
-    return FbRowLink(
-      leading: TxLogo(icon: dangerCount > 0 ? FbIcons.alert : FbIcons.sms, blue: dangerCount == 0),
-      title: '문자',
-      subtitle: sub,
-      onTap: () => AppLinks.openSms(context.read<ShellCubit>()),
     );
   }
 }

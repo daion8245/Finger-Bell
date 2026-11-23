@@ -4,17 +4,19 @@ import '../theme/fb_colors.dart';
 import '../theme/fb_text.dart';
 import '../theme/fb_theme.dart';
 
-/// 흰 카드 (radius 22). 고대비 모드에서는 진한 테두리를 두릅니다.
+/// 흰 카드 (Figma: radius 16, 옅은 테두리). 고대비 모드에서는 진한 테두리를 두릅니다.
+/// [borderColor]로 주의(노랑)·위험(빨강) 카드의 테두리 색을 바꿉니다.
 class FbCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final Color? color;
+  final Color? borderColor;
 
-  const FbCard({super.key, required this.child, this.padding = const EdgeInsets.all(21.6), this.color});
+  const FbCard({super.key, required this.child, this.padding = const EdgeInsets.all(20), this.color, this.borderColor});
 
   /// 목록 카드: 위아래 여백만 줄인 카드.
-  const FbCard.list({super.key, required this.child, this.color})
-    : padding = const EdgeInsets.symmetric(horizontal: 21.6, vertical: 8);
+  const FbCard.list({super.key, required this.child, this.color, this.borderColor})
+    : padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 8);
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +24,10 @@ class FbCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: color ?? c.card,
-        borderRadius: BorderRadius.circular(22),
-        border: c.cardBorder != null ? Border.all(color: c.cardBorder!, width: 2) : null,
+        borderRadius: BorderRadius.circular(16),
+        border: c.cardBorder != null
+            ? Border.all(color: c.cardBorder!, width: 2)
+            : Border.all(color: borderColor ?? c.line),
       ),
       padding: padding,
       child: child,

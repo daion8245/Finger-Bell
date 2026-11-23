@@ -55,6 +55,10 @@ void main() {
         ('white on blueStrong', Colors.white, c.blueStrong),
         ('white on red', Colors.white, c.red),
         ('white on redStrong', Colors.white, c.redStrong),
+        ('warningStrong on warningSoft', c.warningStrong, c.warningSoft),
+        ('ink on warning', c.ink, c.warning),
+        ('tealStrong on tealSoft', c.tealStrong, c.tealSoft),
+        ('white on tealStrong', Colors.white, c.tealStrong),
       ];
       for (final (label, fg, bg) in pairs) {
         final ratio = _contrastRatio(fg, bg);

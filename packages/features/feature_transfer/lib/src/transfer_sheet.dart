@@ -547,7 +547,9 @@ class _TransferSheetState extends State<TransferSheet> {
             ),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 12),
+        RiskLevelMeter(level: risk.level.index),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(child: Text('위험도', style: TextStyle(fontSize: 13.1, fontWeight: FontWeight.w600, color: c.muted))),
