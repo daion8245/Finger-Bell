@@ -188,7 +188,12 @@ class _SettingsViewState extends State<SettingsView> {
                 for (final l in _logs!)
                   FbListRow(
                     leading: TxLogo(text: _channelShort(l.channel), blue: l.channel == 'OPEN_BANKING'),
-                    title: Text(l.message, maxLines: 2),
+                    // 문자 본문·통화 대본은 문자·전화 앱의 몫이라 여기에는 보내고 건 사실만 보여 줍니다.
+                    title: Text(switch (l.channel) {
+                      'SMS' => '문자를 보냈어요',
+                      'ARS' => 'ARS 확인 전화를 걸었어요',
+                      _ => l.message,
+                    }, maxLines: 2),
                     subtitle: '${_channelName(l.channel)} · ${l.action} · ${formatWhen(l.at, now)}',
                   ),
               const SizedBox(height: 4),
