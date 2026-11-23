@@ -118,7 +118,7 @@ void main() {
     final sub = shell.feedback.listen((f) => messages.add(f.message));
     addTearDown(sub.cancel);
 
-    expect(find.text('주의 모드 작동 중'), findsOneWidget);
+    expect(find.text('주의 모드가 켜졌어요'), findsOneWidget);
     expect(find.text('본인 재확인 대기'), findsOneWidget);
     expect(find.text('그래도 진행'), findsOneWidget);
     expect(find.text('그만두기'), findsOneWidget);
@@ -304,6 +304,7 @@ void main() {
     addTearDown(sub.cancel);
 
     // 서버가 '사칭 문자 받기' 요청에 대해 낮음(low) 단계를 돌려주면 위험 문구·위험 진동을 띄우지 않습니다.
+    // 일반 문자 도착 알림은 별도 문자 앱의 몫이라, 핑거벨은 도착 알림도 띄우지 않습니다.
     repo.forceSmsLevel = SmsRiskLevel.low;
     shell.switchTab(AppTab.settings);
     await settle(tester);
@@ -316,9 +317,7 @@ void main() {
     await settle(tester);
 
     expect(repo.calls, contains('receiveSms:senior:phishing'));
-    expect(feedbacks, isNotEmpty);
-    expect(feedbacks.last.message, '금융감독원 민원실(사칭) 문자가 도착했어요');
-    expect(feedbacks.last.vibrate, const [40]);
+    expect(feedbacks.where((f) => f.message.contains('문자')), isEmpty);
     expect(find.text('위험 문자 경고'), findsNothing);
   });
 

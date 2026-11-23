@@ -6,7 +6,8 @@ import '../theme/fb_theme.dart';
 
 enum FbButtonVariant { primary, gray, red, white, ghostWhite }
 
-/// 시안의 .btn. 누르면 살짝 작아집니다.
+/// Figma Button. primary(남보라 채움) · gray(옅은 남보라 바탕의 보조 버튼) · red(위험) ·
+/// white(빨간 경고 화면 위) · ghostWhite. 누르면 살짝 작아집니다.
 class FbButton extends StatefulWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -38,9 +39,9 @@ class _FbButtonState extends State<FbButton> {
     final c = context.fb;
     final (bg, fg) = switch (widget.variant) {
       FbButtonVariant.primary => (c.blue, Colors.white),
-      FbButtonVariant.gray => (c.soft, c.ink2),
+      FbButtonVariant.gray => (c.blueSoft, c.blueStrong),
       FbButtonVariant.red => (c.red, Colors.white),
-      FbButtonVariant.white => (Colors.white, c.redStrong),
+      FbButtonVariant.white => (Colors.white, c.ink),
       FbButtonVariant.ghostWhite => (Colors.white.withValues(alpha: .16), Colors.white),
     };
     final enabled = widget.onPressed != null && !widget.busy;
@@ -55,9 +56,9 @@ class _FbButtonState extends State<FbButton> {
           opacity: enabled || widget.busy ? 1 : .45,
           child: Material(
             color: bg,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
             child: InkWell(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               onTap: enabled ? widget.onPressed : null,
               onHighlightChanged: (v) => setState(() => _down = v),
               child: ConstrainedBox(

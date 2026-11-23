@@ -4,6 +4,7 @@ import '../sheet.dart';
 import '../theme/fb_colors.dart';
 import '../theme/fb_icons.dart';
 import '../theme/fb_text.dart';
+import 'buttons.dart';
 
 /// 주의 모드 중 감시 대상 금융 행동을 시도할 때 띄우는 공통 확인 질문 화면 (기획서 5.6).
 ///
@@ -63,11 +64,13 @@ class _ConfirmationQuestionViewState extends State<ConfirmationQuestionView> {
           SheetHead(title: '잠깐만 확인해요', onBack: widget.onBack, onClose: widget.onClose),
           Row(
             children: [
-              ExcludeSemantics(child: Icon(FbIcons.shield, size: 16, color: c.redStrong)),
+              ExcludeSemantics(child: Icon(Icons.verified_user_outlined, size: 16, color: c.blue)),
               const SizedBox(width: 6),
-              Text(
-                '주의 모드 확인 질문',
-                style: TextStyle(fontSize: 13.2, fontWeight: FontWeight.w700, color: c.redStrong),
+              Flexible(
+                child: Text(
+                  '주의 모드 확인 질문',
+                  style: TextStyle(fontSize: 13.2, fontWeight: FontWeight.w700, color: c.blueStrong),
+                ),
               ),
             ],
           ),
@@ -79,7 +82,7 @@ class _ConfirmationQuestionViewState extends State<ConfirmationQuestionView> {
               header: true,
               child: Text(
                 widget.question,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, height: 1.45, color: c.ink),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.4, letterSpacing: -.5, color: c.ink),
               ),
             ),
           ),
@@ -100,18 +103,10 @@ class _ConfirmationQuestionViewState extends State<ConfirmationQuestionView> {
           ],
           if (widget.onAskGuardian != null) ...[
             const SizedBox(height: 16),
-            Semantics(
-              button: true,
-              child: OutlinedButton.icon(
-                onPressed: widget.busy ? null : widget.onAskGuardian,
-                icon: ExcludeSemantics(child: Icon(FbIcons.phone, size: 18, color: c.blue)),
-                label: Text('보호자에게 물어보기', style: TextStyle(color: c.blue, fontWeight: FontWeight.w700)),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(57, 57),
-                  side: BorderSide(color: c.cardBorder ?? c.faint),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-              ),
+            FbButton.gray(
+              '보호자에게 물어보기',
+              icon: FbIcons.phone,
+              onPressed: widget.busy ? null : widget.onAskGuardian,
             ),
           ],
         ],
@@ -131,36 +126,44 @@ class _OptionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.fb;
+    // Figma ChoiceButton: 흰 바탕 + 왼쪽 빈 동그라미. 미리 고르거나 강조한 선택지는 두지 않습니다.
     return Semantics(
       key: optionKey,
       button: true,
       selected: false,
       child: Material(
-        color: c.soft,
+        color: c.card,
         borderRadius: BorderRadius.circular(14),
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: onTap,
           child: Container(
-            constraints: const BoxConstraints(minWidth: 57, minHeight: 58),
+            constraints: const BoxConstraints(minWidth: 57, minHeight: 60),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: c.cardBorder ?? c.line, width: c.cardBorder != null ? 1.5 : 1),
+              border: Border.all(color: c.cardBorder ?? c.line, width: c.cardBorder != null ? 1.5 : 1.2),
             ),
             child: Row(
               children: [
+                ExcludeSemantics(
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: c.faint, width: 2)),
+                  ),
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     label,
-                    style: TextStyle(fontSize: 15.2, fontWeight: FontWeight.w700, height: 1.45, color: c.ink),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, height: 1.45, color: c.ink),
                   ),
                 ),
-                const SizedBox(width: 8),
-                if (busy)
-                  SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: c.ink2))
-                else
-                  ExcludeSemantics(child: Icon(FbIcons.chevron, size: 20, color: c.muted)),
+                if (busy) ...[
+                  const SizedBox(width: 8),
+                  SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: c.blue)),
+                ],
               ],
             ),
           ),

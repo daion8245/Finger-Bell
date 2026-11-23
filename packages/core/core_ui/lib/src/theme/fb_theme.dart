@@ -21,7 +21,7 @@ abstract final class FbTheme {
     );
     final base = ThemeData(useMaterial3: true, colorScheme: scheme, fontFamily: fontFamily);
     OutlineInputBorder border(Color color) => OutlineInputBorder(
-      borderRadius: BorderRadius.circular(13),
+      borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(color: color, width: 1.5),
     );
     return base.copyWith(
@@ -39,8 +39,8 @@ abstract final class FbTheme {
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14.4, vertical: 13.6),
         hintStyle: TextStyle(color: c.faint, fontSize: 16),
-        border: border(const Color(0xFFE5E8EB)),
-        enabledBorder: border(highContrast ? c.line : const Color(0xFFE5E8EB)),
+        border: border(c.line),
+        enabledBorder: border(c.line),
         focusedBorder: border(c.blue),
       ),
       sliderTheme: SliderThemeData(
@@ -53,7 +53,7 @@ abstract final class FbTheme {
       dialogTheme: const DialogThemeData(backgroundColor: Colors.white, surfaceTintColor: Colors.transparent),
       bottomSheetTheme: const BottomSheetThemeData(backgroundColor: Colors.white, surfaceTintColor: Colors.transparent),
       tooltipTheme: TooltipThemeData(
-        decoration: BoxDecoration(color: const Color(0xFF252F40), borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(color: c.ink, borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

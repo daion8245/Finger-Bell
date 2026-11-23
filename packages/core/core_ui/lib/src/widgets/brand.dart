@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../theme/fb_colors.dart';
-import '../theme/fb_icons.dart';
 
-/// 파란 종 모양 브랜드 마크 + 앱 이름 글자.
+/// 방패 브랜드 마크 + 앱 이름 글자 (Figma TopAppBar: 남보라 방패와 "핑거벨").
 class Brand extends StatelessWidget {
   final bool showWordmark;
   final double size;
@@ -20,21 +19,16 @@ class Brand extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(color: c.blue, borderRadius: BorderRadius.circular(9)),
-            child: const Icon(FbIcons.bell, size: 17, color: Colors.white),
-          ),
+          Icon(Icons.verified_user_outlined, size: size + 6, color: c.blue),
           if (showWordmark) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Flexible(
               child: ExcludeSemantics(
                 child: Text(
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: size, fontWeight: FontWeight.w900, letterSpacing: -.8, color: c.ink),
+                  style: TextStyle(fontSize: size, fontWeight: FontWeight.w900, letterSpacing: -.6, color: c.blue),
                 ),
               ),
             ),

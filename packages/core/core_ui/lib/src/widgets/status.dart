@@ -152,6 +152,74 @@ class FbRail extends StatelessWidget {
   }
 }
 
+/// 작은 둥근 꼬리표 (Figma "24시간" 같은 뱃지).
+class FbPill extends StatelessWidget {
+  final String label;
+  final Color? background;
+  final Color? foreground;
+
+  const FbPill(this.label, {super.key, this.background, this.foreground});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.fb;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(color: background ?? c.blueSoft, borderRadius: BorderRadius.circular(99)),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: foreground ?? c.blueStrong),
+      ),
+    );
+  }
+}
+
+/// 위험 단계 (Figma "위험 단계"): 낮음 · 주의 · 위험 세 칸 중 지금 단계만 채워 보여 줍니다.
+/// [level]은 0=낮음, 1=주의, 2=위험. 색만이 아니라 채움·굵기·글자로도 구분합니다.
+class RiskLevelMeter extends StatelessWidget {
+  final int level;
+  final List<String> labels;
+
+  const RiskLevelMeter({super.key, required this.level, this.labels = const ['낮음', '주의', '위험']});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.fb;
+    final active = level.clamp(0, 2);
+    final fills = [(c.tealStrong, Colors.white), (c.warning, c.ink), (c.redStrong, Colors.white)];
+    return Semantics(
+      label: '위험 단계 ${labels[active]}',
+      excludeSemantics: true,
+      child: Row(
+        children: [
+          for (var i = 0; i < 3; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            Expanded(
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 44),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: i == active ? fills[i].$1 : c.soft,
+                  borderRadius: BorderRadius.circular(12),
+                  border: c.cardBorder != null ? Border.all(color: c.cardBorder!) : null,
+                ),
+                child: Text(
+                  labels[i],
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: i == active ? FontWeight.w800 : FontWeight.w600,
+                    color: i == active ? fills[i].$2 : c.muted,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 /// 위험 사유 상자 (.risk-box). 색 + 글자 + 아이콘으로 표시합니다.
 class RiskBox extends StatelessWidget {
   final String title;

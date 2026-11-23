@@ -173,20 +173,22 @@ class _MobileLayoutState extends State<MobileLayout> {
         body: Column(
           children: [
             Container(
-              color: c.glass,
+              decoration: BoxDecoration(
+                color: c.card,
+                border: Border(bottom: BorderSide(color: c.cardBorder ?? c.line)),
+              ),
               padding: EdgeInsets.fromLTRB(16, MediaQuery.paddingOf(context).top + 8, 8, 8),
               child: Row(
                 children: [
                   Brand(showWordmark: !narrow),
                   const SizedBox(width: 8),
+                  // Figma TopAppBar: 핑거벨 · 사용자 전환 · 알림을 한 줄에 둡니다.
                   const Expanded(
-                    child: Wrap(
-                      alignment: WrapAlignment.end,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 4,
-                      runSpacing: 4,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        PersonaSwitch(),
+                        Flexible(child: PersonaSwitch()),
+                        SizedBox(width: 4),
                         BellButton(),
                       ],
                     ),
@@ -197,16 +199,16 @@ class _MobileLayoutState extends State<MobileLayout> {
             Expanded(
               child: SingleChildScrollView(
                 controller: _scroll,
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
                 child: ShellBody(serverAddress: widget.serverAddress),
               ),
             ),
           ],
         ),
         bottomNavigationBar: Container(
-          decoration: const BoxDecoration(
-            color: Color(0xF2FFFFFF),
-            border: Border(top: BorderSide(color: Color(0xFFEFF1F4))),
+          decoration: BoxDecoration(
+            color: c.card,
+            border: Border(top: BorderSide(color: c.cardBorder ?? c.line)),
           ),
           child: SafeArea(
             top: false,
@@ -244,7 +246,7 @@ class _BottomNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.fb;
-    final color = selected ? c.ink : c.navIdle;
+    final color = selected ? c.blue : c.navIdle;
     return Semantics(
       selected: selected,
       button: true,
@@ -266,7 +268,7 @@ class _BottomNavItem extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+                style: TextStyle(fontSize: 11.5, fontWeight: selected ? FontWeight.w800 : FontWeight.w600, color: color),
               ),
             ],
           ),

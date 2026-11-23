@@ -1,6 +1,6 @@
 name: core_ui
 resolution: workspace
-description: "핑거벨 디자인 시스템: 파랑(기본)·빨강(SOS·위험) 토큰, 고대비 테마, 웹/모바일 레이아웃, 공용 위젯."
+description: "핑거벨 디자인 시스템: Figma 토큰 남보라(기본)·빨강(SOS·위험)·노랑(주의 모드), 고대비 테마, 웹/모바일 레이아웃, 공용 위젯."
 publish_to: none
 version: 0.0.1
 

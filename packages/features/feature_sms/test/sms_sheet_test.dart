@@ -208,16 +208,16 @@ void main() {
     await tester.tapOnText(find.textRange.ofSubstring(fakeUrl));
     await settle(tester);
 
-    expect(find.text('이 링크를 열지 않았어요'), findsOneWidget);
+    expect(find.text('위험한 링크를 막았어요'), findsOneWidget);
     expect(find.text(fakeUrl), findsOneWidget);
     expect(
       find.textContaining('기관이나 회사를 사칭해 링크를 누르게 하거나 전화를 유도하는 사기 의심 문자예요.'),
       findsOneWidget,
     );
 
-    await tester.tap(find.text('문자로 돌아가기'));
+    await tester.tap(find.text('안전하게 닫기'));
     await settle(tester);
-    expect(find.text('이 링크를 열지 않았어요'), findsNothing);
+    expect(find.text('위험한 링크를 막았어요'), findsNothing);
     expect(find.text('사기 의심 문자'), findsOneWidget);
   });
 
@@ -274,7 +274,7 @@ void main() {
 
     await tester.tap(linkRow);
     await settle(tester);
-    expect(find.text('이 링크를 열지 않았어요'), findsOneWidget);
+    expect(find.text('위험한 링크를 막았어요'), findsOneWidget);
     expect(find.text(fakeUrl), findsOneWidget);
   });
 
@@ -327,7 +327,7 @@ void main() {
 
     await tester.tapOnText(find.textRange.ofSubstring('http://fss-verify.invalid/case/8821'));
     await settle(tester);
-    expect(find.text('이 링크를 열지 않았어요'), findsOneWidget);
+    expect(find.text('위험한 링크를 막았어요'), findsOneWidget);
     expect(find.byTooltip('닫기'), findsNothing);
   });
 }

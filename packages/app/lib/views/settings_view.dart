@@ -115,7 +115,7 @@ class _SettingsViewState extends State<SettingsView> {
                 onTap: () => openHowToUseSheet(context),
               ),
               FbListRow(
-                leading: const TxLogo(icon: FbIcons.sms, blue: true),
+                leading: const TxLogo(icon: Icons.feedback_outlined, blue: true),
                 title: const Text('불편한 점 보내기'),
                 subtitle: '버튼 선택과 한 줄 의견으로 불편한 점을 알려 주세요',
                 chevron: true,

@@ -213,7 +213,7 @@ void main() {
     await _settle(tester);
 
     expect(opened, isEmpty);
-    expect(find.text('이 링크를 열지 않았어요'), findsOneWidget);
+    expect(find.text('위험한 링크를 막았어요'), findsOneWidget);
     expect(find.byTooltip('닫기'), findsNothing);
 
     await tester.ensureVisible(find.text('사기 신고·도움'));
@@ -224,11 +224,11 @@ void main() {
     await _settle(tester);
     expect(opened.last, Uri.parse('fingerbell://call/dial?peer=guardian'));
 
-    await tester.ensureVisible(find.text('문자로 돌아가기'));
+    await tester.ensureVisible(find.text('안전하게 닫기'));
     await tester.pump();
-    await tester.tap(find.text('문자로 돌아가기'));
+    await tester.tap(find.text('안전하게 닫기'));
     await _settle(tester);
-    expect(find.text('이 링크를 열지 않았어요'), findsNothing);
+    expect(find.text('위험한 링크를 막았어요'), findsNothing);
     expect(find.text('사기 의심 문자'), findsOneWidget);
 
     // 말풍선 안 링크를 눌러도 똑같이 차단 화면이 뜹니다.
@@ -238,7 +238,7 @@ void main() {
     );
     await _settle(tester);
     expect(opened, isEmpty);
-    expect(find.text('이 링크를 열지 않았어요'), findsOneWidget);
+    expect(find.text('위험한 링크를 막았어요'), findsOneWidget);
   });
 
   testWidgets('SmsApp ignores unknown or malformed link phone and follows shared role on resume', (tester) async {
@@ -364,7 +364,7 @@ void main() {
     await tester.tap(linkRow);
     await _settle(tester);
     expect(tester.takeException(), isNull);
-    expect(find.text('이 링크를 열지 않았어요'), findsOneWidget);
+    expect(find.text('위험한 링크를 막았어요'), findsOneWidget);
   });
 
   testWidgets('SmsApp reads initialLink from AppLinks platform channel on cold start', (tester) async {

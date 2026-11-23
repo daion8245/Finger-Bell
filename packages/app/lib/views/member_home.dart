@@ -8,7 +8,8 @@ import '../app_links.dart';
 import 'easy_home.dart';
 import 'member_widgets.dart';
 
-/// 어르신 일반 홈: 보호자 본인 계좌 구성(AccountCard + RecentCard) 재사용 + SOS·문자·보호자.
+/// 어르신 일반 홈: 보호자 본인 계좌 구성(AccountCard + RecentCard) 재사용 + SOS·보호자.
+/// 문자·전화는 별도 앱이라 핑거벨 홈에 진입점을 두지 않습니다.
 class SeniorHome extends StatelessWidget {
   final Member member;
   final FamilySnapshot data;
@@ -27,7 +28,6 @@ class SeniorHome extends StatelessWidget {
     final banking = guardianBanking(member);
     final account = banking[0];
     final recent = banking[1];
-    final sms = SmsEntryCard(member: member);
     final sos = SosSlot(member: member, data: data);
     final g = data.guardian;
     final help = FraudHelpButton(
@@ -39,9 +39,9 @@ class SeniorHome extends StatelessWidget {
         Greeting('안녕하세요, ${member.name}님'),
         if (!prompted) const EasyModePromptCard(),
         FbSplit(
-          main: [?caution, ...holds, account, sms, recent, help],
+          main: [?caution, ...holds, account, recent, help],
           side: [sos, GuardianCard(member: member, data: data)],
-          mobile: [?caution, ...holds, account, sos, sms, recent, help],
+          mobile: [?caution, ...holds, account, sos, recent, help],
         ),
       ],
     );

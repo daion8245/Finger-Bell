@@ -48,20 +48,83 @@ class _RequestCardState extends State<RequestCard> {
     final isHold = r.isHold;
     final incident = isHold ? widget.data.incidentOrNull(r.incidentId) : null;
     final kindLabel = isHold ? '거래 보류' : '요청';
+    final who = m?.label ?? '';
+    // Figma 보호자 알림: 보류는 빨간 상자 안에 "시도가 보류됐어요"와 큰 남은 시간을 둡니다.
+    final head = isHold
+        ? Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: c.redSoft,
+              borderRadius: BorderRadius.circular(14),
+              border: Border(left: BorderSide(color: c.red, width: 4)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    ExcludeSemantics(child: Icon(Icons.verified_user_outlined, size: 16, color: c.redStrong)),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text('핑거벨 · 위험 알림', style: TextStyle(fontSize: 12.8, fontWeight: FontWeight.w700, color: c.redStrong)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Semantics(
+                  header: true,
+                  child: Text(
+                    '$who님의 ${r.title} 시도가 보류됐어요',
+                    style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, height: 1.35, letterSpacing: -.4, color: c.ink),
+                  ),
+                ),
+                if (r.expiresAt != null && !r.isReconfirm) ...[
+                  const SizedBox(height: 10),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('남은 시간 ', style: TextStyle(fontSize: 14.4, fontWeight: FontWeight.w700, color: c.redStrong)),
+                      CountdownText(
+                        until: r.expiresAt!,
+                        now: widget.now,
+                        format: formatMinSec,
+                        style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -1, color: c.redStrong),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 8),
+                if (r.amount > 0) Text(won(r.amount), style: FbText.bigAmount(c)),
+                Text(
+                  r.amount > 0 ? r.title : r.detail,
+                  style: TextStyle(fontSize: 14.4, fontWeight: FontWeight.w700, color: c.ink2),
+                ),
+                Text('${formatWhen(r.createdAt, widget.now())} · $kindLabel', style: FbText.small(c)),
+              ],
+            ),
+          )
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '$who님의 $kindLabel · ${formatWhen(r.createdAt, widget.now())}',
+                style: TextStyle(fontSize: 13.6, fontWeight: FontWeight.w600, color: c.muted),
+              ),
+              const SizedBox(height: 5.6),
+              Text(r.amount > 0 ? won(r.amount) : r.title, style: FbText.bigAmount(c)),
+              const SizedBox(height: 2.4),
+              Text(r.amount > 0 ? '${r.title} · ${r.detail}' : r.detail, style: TextStyle(fontSize: 13.8, color: c.ink2)),
+            ],
+          );
     return FbCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            '${m?.label ?? ''}님의 $kindLabel · ${formatWhen(r.createdAt, widget.now())}',
-            style: TextStyle(fontSize: 13.6, fontWeight: FontWeight.w600, color: c.muted),
-          ),
-          const SizedBox(height: 5.6),
-          Text(r.amount > 0 ? won(r.amount) : r.title, style: FbText.bigAmount(c)),
-          const SizedBox(height: 2.4),
-          Text(r.amount > 0 ? '${r.title} · ${r.detail}' : r.detail, style: TextStyle(fontSize: 13.8, color: c.ink2)),
+          head,
           const SizedBox(height: 16),
           if (risk != null) ...[
+            RiskLevelMeter(level: risk.level.index),
+            const SizedBox(height: 10),
             RiskBox(
               title: 'AI 위험도 ${risk.score}점 · ${risk.level.label}',
               danger: !risk.isSafe,
@@ -91,7 +154,7 @@ class _RequestCardState extends State<RequestCard> {
           ),
           if (incident != null) ...[
             const SizedBox(height: 12),
-            FbButton.gray(
+            FbButton(
               '위험 근거 요약 보기',
               icon: FbIcons.list,
               onPressed: () => openIncidentSummarySheet(
@@ -109,7 +172,7 @@ class _RequestCardState extends State<RequestCard> {
             FbButtonRow(
               children: [
                 FbButton.gray('연장', busy: _busy == 'extend', onPressed: _busy == null ? _extend : null),
-                FbButton('해제', busy: _busy == 'approve', onPressed: _busy == null ? () => _decide(true) : null),
+                FbButton.gray('해제', busy: _busy == 'approve', onPressed: _busy == null ? () => _decide(true) : null),
               ],
             )
           else

@@ -17,17 +17,17 @@ class EasyModeTopBar extends StatelessWidget {
     final easyMode = context.select((ShellCubit s) => s.state.prefs.easyMode);
     return Material(
       color: c.card,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         key: const ValueKey('easy-mode-top-toggle'),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => context.read<ShellCubit>().setEasyMode(!easyMode),
         child: Container(
           constraints: const BoxConstraints(minHeight: 57),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: c.cardBorder != null ? Border.all(color: c.cardBorder!, width: 2) : null,
+            borderRadius: BorderRadius.circular(16),
+            border: c.cardBorder != null ? Border.all(color: c.cardBorder!, width: 2) : Border.all(color: c.line),
           ),
           child: Row(
             children: [
@@ -118,7 +118,7 @@ class EasyModePromptCard extends StatelessWidget {
 
 /// 쉬운 화면 홈 (어르신·아이): 스크롤 없이 한눈에 보이는 큰 버튼 중심 구성 (기획서 5.10, 7.1).
 /// - 기존 버튼 [송금] [결제] [조회] [SOS]의 위치와 이름을 유지합니다.
-/// - 문자와 전화는 홈에서 한 번에 들어갑니다.
+/// - 문자·전화는 별도 앱이라 핑거벨 홈에 진입점을 두지 않고, 보호자에게 거는 버튼만 둡니다.
 /// - 대출은 쉬운 화면 홈에 내놓지 않습니다.
 class EasyMemberHome extends StatelessWidget {
   final Member member;
@@ -131,7 +131,6 @@ class EasyMemberHome extends StatelessWidget {
     final g = data.guardian;
     final shell = context.read<ShellCubit>();
     void callGuardian() => AppLinks.openCall(shell, peer: 'guardian');
-    void openSms() => AppLinks.openSms(shell);
 
     final holds = [
       for (final r in data.pending(member.id))
@@ -150,12 +149,7 @@ class EasyMemberHome extends StatelessWidget {
           ),
         AccountCard(member: member),
         SosSlot(member: member, data: data),
-        FbButtonRow(
-          children: [
-            FbButton.gray('문자', icon: FbIcons.sms, onPressed: openSms),
-            FbButton.gray('전화', icon: FbIcons.phone, onPressed: callGuardian),
-          ],
-        ),
+        FbButton.gray('보호자에게 전화', icon: FbIcons.phone, onPressed: callGuardian),
         FraudHelpButton(onCallGuardian: callGuardian, guardianName: g.name),
       ],
     );
@@ -182,8 +176,11 @@ class _EasyStatusStrip extends StatelessWidget {
     ];
     final summary = parts.join(' · ');
     final actionLabel = reconfirms > 0 ? '확인하기' : '상세 보기';
+    // 주의 모드만 켜졌으면 노랑(주의), 보류·재확인이 있으면 빨강(위험)으로 보여 줍니다.
+    final danger = holds.isNotEmpty;
+    final (bg, fg, border) = danger ? (c.redSoft, c.redStrong, c.redStrong) : (c.warningSoft, c.warningStrong, c.warning);
     return Material(
-      color: c.redSoft,
+      color: bg,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         key: const ValueKey('easy-status-summary'),
@@ -194,16 +191,16 @@ class _EasyStatusStrip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: c.redStrong, width: 1.5),
+            border: Border.all(color: border, width: 1.5),
           ),
           child: Row(
             children: [
-              ExcludeSemantics(child: Icon(FbIcons.alert, size: 20, color: c.redStrong)),
+              ExcludeSemantics(child: Icon(danger ? FbIcons.alert : Icons.verified_user_outlined, size: 20, color: fg)),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   summary,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: c.redStrong),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: fg),
                 ),
               ),
               const SizedBox(width: 8),

@@ -206,7 +206,7 @@ packages/
     core_api/               HTTP · WebSocket 클라이언트 (실시간 이벤트 + WebRTC 신호 전달)
     core_family/            가족 상태 모델 · 저장소 · FamilyCubit (서버와 실시간 동기화)
     core_shell/             지금 사용자(기기 저장)·탭·화면 설정(`MethodChannelPrefsStore` · `ProviderPrefsStore`) · 피드백 요청 (`ShellCubit`)
-    core_ui/                디자인 시스템 (파랑·빨강 토큰, 고대비, 공용 위젯)
+    core_ui/                디자인 시스템 (Figma 토큰: 남보라·빨강·노랑, 고대비, 공용 위젯)
     core_errors/            공통 Failure
   features/
     feature_sms/            iOS 메시지 앱 모양 문자 화면 재현 (최신순 대화 목록·말풍선·위험·주의 알림 띠·외부 링크 차단 화면·전화번호 발신 연결)

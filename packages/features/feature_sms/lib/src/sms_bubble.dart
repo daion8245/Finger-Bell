@@ -405,8 +405,10 @@ class _SmsWarningCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Figma S1-02: 말풍선 아래 "핑거벨 · 위험한 문자예요" 표시와 "왜 위험할까요?" 설명.
+    final c = context.fb;
     final danger = message.isDanger;
-    final accent = danger ? palette.red : palette.amber;
+    final (bg, border, fg) = danger ? (c.redSoft, c.red, c.redStrong) : (c.warningSoft, c.warning, c.warningStrong);
     final title = danger ? '사기 의심 문자' : '주의가 필요한 문자';
 
     return Semantics(
@@ -414,27 +416,34 @@ class _SmsWarningCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: bg,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: palette.highContrast ? accent : accent.withValues(alpha: 0.42),
-            width: palette.highContrast ? 1.5 : 1,
-          ),
+          border: Border.all(color: c.cardBorder ?? border, width: c.cardBorder != null ? 1.5 : 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
+                ExcludeSemantics(child: Icon(Icons.verified_user_outlined, size: 15, color: fg)),
+                const SizedBox(width: 5),
+                Flexible(
+                  child: Text('핑거벨', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: fg)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
                 Semantics(
                   label: danger ? '위험 경고' : '주의',
-                  child: Icon(Icons.warning_amber_rounded, size: 20, color: accent),
+                  child: Icon(Icons.warning_amber_rounded, size: 20, color: fg),
                 ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     title,
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: accent),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: fg),
                   ),
                 ),
               ],
@@ -443,20 +452,17 @@ class _SmsWarningCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 message.explanation,
-                style: TextStyle(
-                  fontSize: 13.6,
-                  fontWeight: FontWeight.w600,
-                  height: 1.45,
-                  color: palette.ink,
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, height: 1.45, color: c.ink),
               ),
             ],
             if (message.reasons.isNotEmpty) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: 10),
+              Text('왜 위험할까요?', style: TextStyle(fontSize: 13.6, fontWeight: FontWeight.w800, color: c.ink)),
+              const SizedBox(height: 4),
               for (final reason in message.reasons)
                 BulletText(
                   reason,
-                  style: TextStyle(fontSize: 12.8, height: 1.5, color: palette.ink2),
+                  style: TextStyle(fontSize: 13.4, height: 1.55, color: c.ink2),
                 ),
             ],
             const SizedBox(height: 12),

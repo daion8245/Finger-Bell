@@ -839,64 +839,75 @@ class _BlockedLinkViewState extends State<BlockedLinkView> {
       ),
     );
 
+    // Figma S1-03 "위험한 링크를 막았어요": 문자 앱 안에 뜨는 핑거벨 보호 화면.
+    final c = context.fb;
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Row(
+          children: [
+            ExcludeSemantics(child: Icon(Icons.verified_user_outlined, size: 16, color: c.blue)),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text('핑거벨 · 링크 보호', style: TextStyle(fontSize: 13.2, fontWeight: FontWeight.w700, color: c.blueStrong)),
+            ),
+          ],
+        ),
         Focus(
           focusNode: _focus,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(
               children: [
                 ExcludeSemantics(
                   child: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(color: palette.red, shape: BoxShape.circle),
-                    child: const Icon(Icons.shield_outlined, size: 28, color: Colors.white),
+                    width: 96,
+                    height: 96,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: c.cardBorder ?? c.red.withValues(alpha: .35), width: 2),
+                    ),
+                    child: Icon(Icons.gpp_bad_outlined, size: 46, color: c.redStrong),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
                 Semantics(
                   liveRegion: true,
                   child: Text(
-                    '이 링크를 열지 않았어요',
+                    '위험한 링크를 막았어요',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800, color: palette.ink),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -.6, color: c.ink),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 304),
                   child: Text(
-                    '위험한 인터넷 주소로 연결되지 않도록 외부로 열지 않고 안전하게 막았어요.',
+                    '외부로 열지 않고 안전하게 막았어요.\n개인정보를 입력하지 마세요.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14.5, height: 1.5, color: palette.ink2),
+                    style: TextStyle(fontSize: 15, height: 1.55, color: c.ink2),
                   ),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: palette.divider,
-              width: palette.highContrast ? 1.5 : 1,
-            ),
+            border: Border.all(color: c.cardBorder ?? c.line, width: c.cardBorder != null ? 1.5 : 1),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('차단한 주소', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: palette.ink2)),
+              Text('차단한 주소', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: c.muted)),
               const SizedBox(height: 4),
               Text(
                 widget.url,
-                style: TextStyle(fontSize: 13.6, fontWeight: FontWeight.w700, color: palette.ink),
+                style: TextStyle(fontSize: 13.6, fontWeight: FontWeight.w700, color: c.ink),
               ),
             ],
           ),
@@ -907,30 +918,25 @@ class _BlockedLinkViewState extends State<BlockedLinkView> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: palette.highContrast ? palette.red : palette.red.withValues(alpha: 0.42),
-              width: palette.highContrast ? 1.5 : 1,
-            ),
+            border: Border.all(color: c.cardBorder ?? c.line, width: c.cardBorder != null ? 1.5 : 1),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text('왜 위험할까요?', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: c.ink)),
+              const SizedBox(height: 6),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Semantics(
                     label: '위험 경고',
-                    child: Icon(Icons.warning_amber_rounded, size: 19, color: palette.red),
+                    child: Icon(Icons.warning_amber_rounded, size: 19, color: c.redStrong),
                   ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       reasonTitle,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        height: 1.45,
-                        color: palette.red,
-                      ),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, height: 1.45, color: c.redStrong),
                     ),
                   ),
                 ],
@@ -939,35 +945,20 @@ class _BlockedLinkViewState extends State<BlockedLinkView> {
               for (final reason in reasons)
                 BulletText(
                   reason,
-                  style: TextStyle(fontSize: 13.1, height: 1.6, color: palette.ink2),
+                  style: TextStyle(fontSize: 13.4, height: 1.6, color: c.ink2),
                 ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        FraudHelpButton(onCallGuardian: widget.onCallGuardian),
+        const SizedBox(height: 20),
+        FbButton('안전하게 닫기', onPressed: widget.onBack),
         const SizedBox(height: 10),
-        FilledButton(
-          onPressed: widget.onBack,
-          style: FilledButton.styleFrom(
-            backgroundColor: palette.blue,
-            foregroundColor: Colors.white,
-            splashFactory: NoSplash.splashFactory,
-            minimumSize: const Size(57, 57),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            elevation: 0,
-          ),
-          child: const Text(
-            '문자로 돌아가기',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-          ),
-        ),
+        FraudHelpButton(onCallGuardian: widget.onCallGuardian),
       ],
     );
 
     return ColoredBox(
-      color: palette.threadBg,
+      color: c.redSoft,
       child: LayoutBuilder(
         builder: (context, constraints) {
           if (!constraints.hasBoundedHeight) {

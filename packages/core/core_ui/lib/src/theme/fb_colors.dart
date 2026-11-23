@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
-/// 색 토큰. 파랑은 기본 동작, 빨강은 SOS·위험에만 씁니다.
+/// 색 토큰 (Figma "핑거벨 · 공통 토큰").
+/// - blue*: 기본 동작 (Figma primary, 남보라). 이름은 기존 코드와 맞추려고 그대로 둡니다.
+/// - red*: SOS·위험·보류 (Figma error).
+/// - warning*: 주의 모드 (Figma warning).
+/// - teal*: 안전·완료 (Figma tertiary).
+/// *Strong 색은 흰 바탕·*Soft 바탕 위 글자로 4.5:1 이상 대비가 나오게 고른 값입니다.
 @immutable
 class FbColors extends ThemeExtension<FbColors> {
   final Color blue;
@@ -9,6 +14,12 @@ class FbColors extends ThemeExtension<FbColors> {
   final Color red;
   final Color redStrong;
   final Color redSoft;
+  final Color warning;
+  final Color warningStrong;
+  final Color warningSoft;
+  final Color teal;
+  final Color tealStrong;
+  final Color tealSoft;
   final Color ink;
   final Color ink2;
   final Color muted;
@@ -31,6 +42,12 @@ class FbColors extends ThemeExtension<FbColors> {
     required this.red,
     required this.redStrong,
     required this.redSoft,
+    required this.warning,
+    required this.warningStrong,
+    required this.warningSoft,
+    required this.teal,
+    required this.tealStrong,
+    required this.tealSoft,
     required this.ink,
     required this.ink2,
     required this.muted,
@@ -46,32 +63,44 @@ class FbColors extends ThemeExtension<FbColors> {
   });
 
   static const light = FbColors(
-    blue: Color(0xFF3182F6),
-    blueStrong: Color(0xFF1B64DA),
-    blueSoft: Color(0xFFE8F3FF),
-    red: Color(0xFFF04452),
-    redStrong: Color(0xFFD0293A),
-    redSoft: Color(0xFFFFF0F1),
-    ink: Color(0xFF191F28),
-    ink2: Color(0xFF4E5968),
-    muted: Color(0xFF6B7684),
-    faint: Color(0xFF76808D),
-    line: Color(0xFFF2F4F6),
-    bg: Color(0xFFF3F5F8),
+    blue: Color(0xFF5145E7),
+    blueStrong: Color(0xFF3B30C4),
+    blueSoft: Color(0xFFEEF0FD),
+    red: Color(0xFFFB5D4D),
+    redStrong: Color(0xFFC8321F),
+    redSoft: Color(0xFFFFEEEB),
+    warning: Color(0xFFF3A527),
+    warningStrong: Color(0xFF8A5000),
+    warningSoft: Color(0xFFFFF5DF),
+    teal: Color(0xFF12B6A6),
+    tealStrong: Color(0xFF0A766C),
+    tealSoft: Color(0xFFE3F7F5),
+    ink: Color(0xFF1C1D2B),
+    ink2: Color(0xFF3F4354),
+    muted: Color(0xFF6B7080),
+    faint: Color(0xFF7C8191),
+    line: Color(0xFFE5E9EF),
+    bg: Color(0xFFF4F5FB),
     card: Color(0xFFFFFFFF),
-    soft: Color(0xFFF2F4F6),
-    glass: Color(0xEBF3F5F8),
-    navIdle: Color(0xFF76808D),
-    backdrop: Color(0xFFECEFF4),
+    soft: Color(0xFFF1F2F9),
+    glass: Color(0xFFFFFFFF),
+    navIdle: Color(0xFF6B7080),
+    backdrop: Color(0xFFECEEF6),
   );
 
   static const highContrast = FbColors(
-    blue: Color(0xFF0B55D6),
-    blueStrong: Color(0xFF063B9C),
-    blueSoft: Color(0xFFDCE9FF),
+    blue: Color(0xFF2E22B0),
+    blueStrong: Color(0xFF1E1585),
+    blueSoft: Color(0xFFE4E2FF),
     red: Color(0xFFC8102E),
     redStrong: Color(0xFF9E0B22),
     redSoft: Color(0xFFFFE3E7),
+    warning: Color(0xFFB86E00),
+    warningStrong: Color(0xFF6B3E00),
+    warningSoft: Color(0xFFFFEFC7),
+    teal: Color(0xFF0A766C),
+    tealStrong: Color(0xFF075A52),
+    tealSoft: Color(0xFFD5F2EE),
     ink: Color(0xFF000000),
     ink2: Color(0xFF14181E),
     muted: Color(0xFF2E353F),
@@ -79,8 +108,8 @@ class FbColors extends ThemeExtension<FbColors> {
     line: Color(0xFF8A929C),
     bg: Color(0xFFFFFFFF),
     card: Color(0xFFFFFFFF),
-    soft: Color(0xFFE6EAEF),
-    glass: Color(0xF5FFFFFF),
+    soft: Color(0xFFE6E8F0),
+    glass: Color(0xFFFFFFFF),
     navIdle: Color(0xFF4A525C),
     backdrop: Color(0xFFFFFFFF),
     cardBorder: Color(0xFF1B1F24),
@@ -102,6 +131,12 @@ class FbColors extends ThemeExtension<FbColors> {
       red: l(red, other.red),
       redStrong: l(redStrong, other.redStrong),
       redSoft: l(redSoft, other.redSoft),
+      warning: l(warning, other.warning),
+      warningStrong: l(warningStrong, other.warningStrong),
+      warningSoft: l(warningSoft, other.warningSoft),
+      teal: l(teal, other.teal),
+      tealStrong: l(tealStrong, other.tealStrong),
+      tealSoft: l(tealSoft, other.tealSoft),
       ink: l(ink, other.ink),
       ink2: l(ink2, other.ink2),
       muted: l(muted, other.muted),

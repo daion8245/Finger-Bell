@@ -131,13 +131,15 @@ void main() {
     await _settle(tester);
     expect(shell.state.prefs.easyMode, isTrue);
 
-    // 쉬운 화면 홈: 기존 [송금] [결제] [조회] [SOS] 유지 + [문자] [전화] 한 번에 진입 + 최근 거래·대출 없음.
+    // 쉬운 화면 홈: 기존 [송금] [결제] [조회] [SOS] 유지 + [보호자에게 전화] + 최근 거래·대출 없음.
+    // 문자·전화는 별도 앱이라 핑거벨 홈에 [문자]·[전화] 진입점을 두지 않습니다.
     expect(find.text('송금'), findsOneWidget);
     expect(find.text('결제'), findsOneWidget);
     expect(find.text('조회'), findsOneWidget);
     expect(find.text('계좌 동결'), findsOneWidget);
-    expect(find.text('문자'), findsOneWidget);
-    expect(find.text('전화'), findsOneWidget);
+    expect(find.text('문자'), findsNothing);
+    expect(find.text('전화'), findsNothing);
+    expect(find.text('보호자에게 전화'), findsOneWidget);
     expect(find.text('사기 신고·도움'), findsOneWidget);
     expect(find.text('최근 거래'), findsNothing);
     expect(find.textContaining('대출'), findsNothing);
@@ -146,8 +148,8 @@ void main() {
     shell.goto(Persona.child, AppTab.home);
     await _settle(tester);
     expect(find.text('안녕, 민준!'), findsOneWidget);
-    expect(find.text('문자'), findsOneWidget);
-    expect(find.text('전화'), findsOneWidget);
+    expect(find.text('문자'), findsNothing);
+    expect(find.text('보호자에게 전화'), findsOneWidget);
 
     shell.goto(Persona.guardian, AppTab.home);
     await _settle(tester);
@@ -161,14 +163,10 @@ void main() {
     final (_, _, restarted) = await _pumpStage7App(tester, store: store, openedLinks: opened);
     expect(restarted.state.prefs.easyMode, isTrue);
     expect(find.text('최근 거래'), findsNothing);
-    expect(find.text('전화'), findsOneWidget);
+    expect(find.text('보호자에게 전화'), findsOneWidget);
 
-    // 쉬운 화면 홈의 [문자]·[전화]로 각각 문자 앱·전화 앱 열기
-    await tester.tap(find.text('문자'));
-    await _settle(tester);
-    expect(opened.last, Uri.parse('fingerbell://sms'));
-
-    await tester.tap(find.text('전화'));
+    // 쉬운 화면 홈의 [보호자에게 전화]는 별도 전화 앱을 엽니다.
+    await tester.tap(find.text('보호자에게 전화'));
     await _settle(tester);
     expect(opened.last, Uri.parse('fingerbell://call/dial?peer=guardian'));
 
@@ -309,7 +307,7 @@ void main() {
     await _settle(tester);
     expect(tester.takeException(), isNull);
     expect(find.text('본인 재확인 대기'), findsOneWidget);
-    expect(find.text('주의 모드 작동 중'), findsOneWidget);
+    expect(find.text('주의 모드가 켜졌어요'), findsOneWidget);
 
     // 2. 확인 질문 화면
     await tester.pumpWidget(const SizedBox.shrink());
@@ -381,8 +379,8 @@ void main() {
       final rect = tester.getRect(find.text(label));
       expect(rect.bottom, lessThanOrEqualTo(860), reason: '$label pushed below viewport');
     }
-    // 알려진 한계: 요약이 뜬 상태에서는 [문자]·[전화]·[사기 신고·도움]이 화면 아래로 조금 밀려 짧은 스크롤이 필요합니다(7.1 Ⅱ-⑥ 일부 적용).
-    for (final label in ['문자', '전화', '사기 신고·도움']) {
+    // 알려진 한계: 요약이 뜬 상태에서는 [보호자에게 전화]·[사기 신고·도움]이 화면 아래로 조금 밀려 짧은 스크롤이 필요합니다(7.1 Ⅱ-⑥ 일부 적용).
+    for (final label in ['보호자에게 전화', '사기 신고·도움']) {
       expect(find.text(label), findsWidgets);
     }
 
@@ -390,7 +388,7 @@ void main() {
     await _settle(tester);
     expect(find.text('보호 상태 확인'), findsOneWidget);
     expect(find.text('거래 보류 중'), findsNWidgets(2));
-    expect(find.text('주의 모드 작동 중'), findsOneWidget);
+    expect(find.text('주의 모드가 켜졌어요'), findsOneWidget);
   });
 
   testWidgets('guardian feedback submission records guardian as author', (tester) async {

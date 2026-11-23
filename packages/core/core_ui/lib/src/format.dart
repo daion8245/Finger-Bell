@@ -38,6 +38,14 @@ String formatCountdown(Duration d) {
   return '${_two(s ~/ 3600)}:${_two((s % 3600) ~/ 60)}:${_two(s % 60)}';
 }
 
+/// 남은 시간 "23시간 58분" (1시간 미만은 "41분", 1분 미만은 "1분 미만")
+String formatHourMin(Duration d) {
+  final m = d.isNegative ? 0 : d.inMinutes;
+  if (m == 0) return '1분 미만';
+  if (m < 60) return '$m분';
+  return m % 60 == 0 ? '${m ~/ 60}시간' : '${m ~/ 60}시간 ${m % 60}분';
+}
+
 /// 남은 시간 "2:41"
 String formatMinSec(Duration d) {
   final s = d.isNegative ? 0 : d.inSeconds;
