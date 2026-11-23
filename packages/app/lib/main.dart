@@ -2,6 +2,7 @@ import 'package:core_api/core_api.dart';
 import 'package:core_family/core_family.dart';
 import 'package:core_shell/core_shell.dart';
 import 'package:core_ui/core_ui.dart';
+import 'package:feature_call/feature_call.dart';
 import 'package:flutter/material.dart';
 
 import 'app.dart';
@@ -18,6 +19,7 @@ void main() {
       family: family,
       shell: ShellCubit(),
       feedback: DeviceFeedback(),
+      phone: SipPhone(SipPhone.serverFor(config.baseUrl)),
       serverAddress: config.toString(),
     ),
   );

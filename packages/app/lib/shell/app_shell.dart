@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:core_family/core_family.dart';
 import 'package:core_shell/core_shell.dart';
 import 'package:core_ui/core_ui.dart';
+import 'package:feature_call/feature_call.dart';
 import 'package:feature_guardian/feature_guardian.dart';
 import 'package:feature_sos/feature_sos.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ import 'toast.dart';
 
 /// 앱 셸: 서버 연결 → 웹/모바일 레이아웃 → 그 위의 SOS 화면·토스트.
 /// 실시간 이벤트에 반응하고(다른 기기 알림, ARS 전화), 피드백 요청을 진동·음성으로 내보냅니다.
+/// 고른 사용자로 인터넷 전화(Asterisk)에 등록하고, 걸려 온 전화·문자를 띄웁니다.
 class AppShell extends StatefulWidget {
   static final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -40,6 +42,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
     _subs
       ..add(shell.feedback.listen(_onFeedback))
       ..add(context.read<FamilyCubit>().events.listen(_onEvent));
+    context.read<SipPhone?>()?.register(shell.state.persona.name);
   }
 
   @override
@@ -96,6 +99,24 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
     AppShell.navigatorKey.currentState?.popUntil((route) => route.isFirst);
   }
 
+  /// 가족 내선의 이름 (모르는 내선·서버 문자는 null).
+  String? _nameOf(String? ext) {
+    final data = context.read<FamilyCubit>().state.snapshot;
+    return data == null || ext == null ? null : familyContacts(data)[ext];
+  }
+
+  void _onIncomingCall(PhoneState s) {
+    final name = _nameOf(s.peer) ?? s.peer ?? '';
+    final nav = AppShell.navigatorKey.currentContext;
+    if (nav != null) openCallSheet(nav, name: name);
+    context.read<ShellCubit>().say('$name님에게서 전화가 왔어요', toast: false, vibrate: const [300, 150, 300, 150, 300]);
+  }
+
+  void _onText(ChatMessage m) {
+    final name = _nameOf(m.peer);
+    context.read<ShellCubit>().say(name == null ? m.text : '$name님 문자: ${m.text}', vibrate: const [60, 80, 60]);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
@@ -108,6 +129,20 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
           listenWhen: (a, b) => a.shakeTick != b.shakeTick,
           listener: (_, _) => _shake.forward(from: 0),
         ),
+        BlocListener<ShellCubit, ShellState>(
+          listenWhen: (a, b) => a.persona != b.persona,
+          listener: (context, s) => context.read<SipPhone?>()?.register(s.persona.name),
+        ),
+        if (context.read<SipPhone?>() != null) ...[
+          BlocListener<SipPhone, PhoneState>(
+            listenWhen: (a, b) => a.call == null && b.call != null && b.incoming,
+            listener: (_, s) => _onIncomingCall(s),
+          ),
+          BlocListener<SipPhone, PhoneState>(
+            listenWhen: (a, b) => b.messages.length > a.messages.length && !b.messages.last.mine,
+            listener: (_, s) => _onText(s.messages.last),
+          ),
+        ],
       ],
       child: BlocBuilder<FamilyCubit, FamilyState>(
         buildWhen: (a, b) => a.status != b.status || (a.snapshot == null) != (b.snapshot == null),
@@ -179,7 +214,7 @@ class SosLayer extends StatelessWidget {
             member: m,
             guardianName: state.data.guardian.name,
             now: context.read<FamilyCubit>().now,
-            onCallGuardian: () => shell.say('(시연) 보호자 ${state.data.guardian.name}님께 전화를 연결해요'),
+            onCallGuardian: () => startCall(context, peer: Persona.guardian.name, name: state.data.guardian.name),
             onClose: shell.closeSos,
           ),
         );

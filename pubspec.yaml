@@ -13,6 +13,7 @@ workspace:
   - packages/features/feature_transfer
   - packages/features/feature_payment
   - packages/features/feature_guardian
+  - packages/features/feature_call
   - packages/app
 dev_dependencies:
   melos: ^8.9.0

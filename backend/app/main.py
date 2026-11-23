@@ -21,7 +21,7 @@ from .config import Settings
 from .db import Base, make_engine, make_session_factory
 from .domain.fds import FdsEngine
 from .events import EventHub
-from .integrations import Gateways
+from .integrations import AsteriskSms, Gateways
 from .models import Guardian
 from .schemas import (
     AckBody,
@@ -49,7 +49,10 @@ def create_app(settings: Settings | None = None, gateways: Gateways | None = Non
     sessions = make_session_factory(engine)
     fds = FdsEngine()
     hub = EventHub()
-    gateways = gateways or Gateways()
+    if gateways is None:
+        gateways = Gateways()
+        if settings.asterisk_ari_url:
+            gateways.sms = AsteriskSms(settings.asterisk_ari_url, settings.asterisk_ari_user, settings.asterisk_ari_password)
 
     def ensure_seeded() -> None:
         if schema_outdated(engine):

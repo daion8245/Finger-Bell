@@ -17,6 +17,7 @@ dependencies:
   core_family: ^0.0.1
   core_shell: ^0.0.1
   core_ui: ^0.0.1
+  feature_call: ^0.0.1
   feature_guardian: ^0.0.1
   feature_payment: ^0.0.1
   feature_sos: ^0.0.1

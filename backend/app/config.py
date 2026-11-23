@@ -36,6 +36,11 @@ class Settings:
     # Flutter 웹 빌드 폴더. 지정하면 같은 서버에서 웹 앱도 제공합니다.
     web_dir: str | None = None
     cors_origins: list[str] = field(default_factory=lambda: ["*"])
+    # Asterisk ARI 주소 (예: http://127.0.0.1:8088/ari). 주면 SOS 문자를 보호자 앱으로 보내고, 없으면 모의 문자.
+    asterisk_ari_url: str | None = None
+    # asterisk/conf/ari.conf의 시연용 계정과 같아야 합니다.
+    asterisk_ari_user: str = "fingerbell"
+    asterisk_ari_password: str = "fingerbell-demo"
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -47,6 +52,9 @@ class Settings:
             freeze_hours=_int("FINGERBELL_FREEZE_HOURS", cls.freeze_hours),
             web_dir=os.getenv("FINGERBELL_WEB_DIR") or _default_web_dir(),
             cors_origins=[o.strip() for o in origins.split(",") if o.strip()],
+            asterisk_ari_url=os.getenv("FINGERBELL_ASTERISK_ARI") or None,
+            asterisk_ari_user=os.getenv("FINGERBELL_ASTERISK_ARI_USER", cls.asterisk_ari_user),
+            asterisk_ari_password=os.getenv("FINGERBELL_ASTERISK_ARI_PASSWORD", cls.asterisk_ari_password),
         )
 
 

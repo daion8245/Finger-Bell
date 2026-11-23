@@ -1,6 +1,7 @@
 import 'package:core_family/core_family.dart';
 import 'package:core_shell/core_shell.dart';
 import 'package:core_ui/core_ui.dart';
+import 'package:feature_call/feature_call.dart';
 import 'package:feature_payment/feature_payment.dart';
 import 'package:feature_sos/feature_sos.dart';
 import 'package:feature_transfer/feature_transfer.dart';
@@ -154,7 +155,7 @@ class GuardianCard extends StatelessWidget {
               shape: const CircleBorder(),
               child: IconButton(
                 tooltip: '보호자에게 전화',
-                onPressed: () => context.read<ShellCubit>().say('(시연) 보호자 ${g.name}님께 전화를 연결해요'),
+                onPressed: () => startCall(context, peer: Persona.guardian.name, name: g.name),
                 icon: Icon(FbIcons.phone, color: c.blue, size: 18),
               ),
             ),

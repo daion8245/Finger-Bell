@@ -53,6 +53,9 @@ try {
         # 기기의 127.0.0.1:8765 을 이 PC의 핑거벨 백엔드로 연결합니다 (에뮬레이터·USB 기기 공통).
         & $adbExe -s $Device reverse "tcp:$ApiPort" "tcp:$ApiPort"
         if ($LASTEXITCODE -ne 0) { throw 'adb reverse failed.' }
+        # 인터넷 전화 신호(Asterisk ws://127.0.0.1:8088/ws)도 같은 PC로 연결합니다. 음성은 같은 Wi-Fi로 오갑니다.
+        & $adbExe -s $Device reverse tcp:8088 tcp:8088
+        if ($LASTEXITCODE -ne 0) { throw 'adb reverse failed.' }
 
         $runArguments = @('run', '-d', $Device, '--no-pub')
         # .env.local.json에 FINGERBELL_API_URL이 있으면 그 값을, 없으면 기본 주소를 씁니다.

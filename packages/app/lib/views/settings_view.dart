@@ -2,6 +2,7 @@ import 'package:core_api/core_api.dart';
 import 'package:core_family/core_family.dart';
 import 'package:core_shell/core_shell.dart';
 import 'package:core_ui/core_ui.dart';
+import 'package:feature_call/feature_call.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -70,9 +71,13 @@ class _SettingsViewState extends State<SettingsView> {
       },
     );
 
+    final persona = context.select((ShellCubit s) => s.state.persona);
+
     return FbView(
       children: [
         const Greeting('설정'),
+        if (context.read<SipPhone?>() != null)
+          FamilyContactsCard(contacts: familyContacts(context.read<FamilyCubit>().state.data)..remove(persona.name)),
         FbCard(
           padding: const EdgeInsets.symmetric(horizontal: 21.6, vertical: 6.4),
           child: Column(
@@ -135,7 +140,7 @@ class _SettingsViewState extends State<SettingsView> {
                     subtitle: '${_channelName(l.channel)} · ${l.action} · ${formatWhen(l.at, now)}',
                   ),
               const SizedBox(height: 4),
-              Text('오픈뱅킹·FCM·SMS·ARS는 모의 연동이에요. 실제 요청은 보내지 않아요.', style: FbText.small(c)),
+              Text('오픈뱅킹·FCM·ARS는 모의 연동이에요. 문자는 서버에 Asterisk를 연결하면 보호자 앱으로 보내요.', style: FbText.small(c)),
             ],
           ),
         ),

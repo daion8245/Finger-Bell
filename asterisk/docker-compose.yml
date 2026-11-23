@@ -1,0 +1,10 @@
+# 핑거벨 인터넷 전화·문자 서버 (Asterisk). 저장소 루트에서 .\run-asterisk.ps1 로 실행하세요.
+services:
+  asterisk:
+    build: .
+    environment:
+      LAN_IP: ${LAN_IP:?LAN_IP에 이 PC의 Wi-Fi IP를 넣으세요}
+    ports:
+      - "8088:8088"                   # SIP over WebSocket (ws://<PC IP>:8088/ws) · ARI (/ari)
+      - "10000-10049:10000-10049/udp" # 통화 음성 (RTP, rtp.conf 범위와 같게)
+    restart: unless-stopped

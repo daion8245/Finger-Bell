@@ -1,0 +1,2 @@
+# 리눅스 컨테이너 안에서 읽는 파일이라 줄바꿈을 LF로 고정합니다 (CRLF면 entrypoint.sh가 깨짐).
+* text eol=lf
