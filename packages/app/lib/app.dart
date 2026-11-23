@@ -1,6 +1,7 @@
 import 'package:core_family/core_family.dart';
 import 'package:core_shell/core_shell.dart';
 import 'package:core_ui/core_ui.dart';
+import 'package:feature_call/feature_call.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -16,12 +17,16 @@ class FingerBellApp extends StatelessWidget {
   final FeedbackOutput feedback;
   final String serverAddress;
 
+  /// 가족 인터넷 전화·문자 (Asterisk). 없으면(테스트) 전화 기능을 숨깁니다.
+  final SipPhone? phone;
+
   const FingerBellApp({
     super.key,
     required this.family,
     required this.shell,
     required this.feedback,
     required this.serverAddress,
+    this.phone,
   });
 
   /// 어르신 화면은 기본 글자를 한 단계 크게 (16 → 17px), 큰 글씨는 1.12배.
@@ -41,7 +46,11 @@ class FingerBellApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider.value(value: family), BlocProvider.value(value: shell)],
+      providers: [
+        BlocProvider.value(value: family),
+        BlocProvider.value(value: shell),
+        if (phone != null) BlocProvider<SipPhone>.value(value: phone!),
+      ],
       child: RepositoryProvider<FeedbackOutput>.value(
         value: feedback,
         child: BlocBuilder<ShellCubit, ShellState>(

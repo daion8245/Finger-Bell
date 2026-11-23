@@ -78,6 +78,9 @@ try {
             # Forward the device's localhost API port to the backend on this PC.
             & $adbExe -s $Device reverse "tcp:$ApiPort" "tcp:$ApiPort"
             if ($LASTEXITCODE -ne 0) { throw 'adb reverse failed.' }
+            # 가족 인터넷 전화 신호(Asterisk ws://127.0.0.1:8088/ws)도 같은 PC로 연결합니다. 음성은 같은 Wi-Fi로 오갑니다.
+            & $adbExe -s $Device reverse tcp:8088 tcp:8088
+            if ($LASTEXITCODE -ne 0) { throw 'adb reverse failed.' }
         }
 
         $defineArguments = @()

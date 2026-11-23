@@ -1,19 +1,24 @@
 """외부 연동 어댑터 (금융결제원 오픈뱅킹, FCM 푸시, SMS, OpenRouter LLM · 음성인식 STT).
 
 기본은 모의(Mock) 구현이고, `OPENROUTER_API_KEY`가 설정되면 LLM은 `OpenRouterLlmGateway`,
-음성인식은 `OpenRouterSttGateway`로 동작합니다.
+음성인식은 `OpenRouterSttGateway`로 동작합니다. 문자는 `FINGERBELL_ASTERISK_ARI`를 주면
+Asterisk로 보호자 앱에 실제로 보냅니다(`AsteriskSms`).
 실제 API처럼 호출 내용을 만들고 IntegrationRecord로 돌려주면, 서비스가 연동 기록(integration_logs)에 남깁니다.
 비밀키와 통화 음성·전사문 원문은 로그·응답·예외 메시지에 절대 남기지 않습니다.
 """
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import threading
 import time
 from dataclasses import dataclass, field, replace
 from typing import Any, Protocol
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 import httpx
 
@@ -206,6 +211,33 @@ class MockPush:
 class MockSms:
     def send(self, to, text):
         return IntegrationRecord("SMS", "POST /sms/send", to, text, {"mode": "mock"})
+
+
+class AsteriskSms:
+    """Asterisk ARI로 보호자 앱(SIP 내선)에 문자(SIP MESSAGE)를 보냅니다.
+
+    shortcut: 가족이 하나라 문자는 모두 보호자 내선으로 갑니다. 보호자가 여럿이 되면 전화번호→내선 표를 두세요.
+    """
+
+    def __init__(self, ari_url: str, user: str, password: str, endpoint: str = "guardian", timeout: float = 2.0):
+        self.ari_url = ari_url.rstrip("/")
+        self.endpoint = endpoint
+        self.timeout = timeout
+        self._auth = "Basic " + base64.b64encode(f"{user}:{password}".encode()).decode()
+
+    def send(self, to, text):
+        path = f"/endpoints/PJSIP/{self.endpoint}/sendMessage"
+        query = urlencode({"from": "sip:fingerbell@fingerbell", "body": text})
+        request = Request(f"{self.ari_url}{path}?{query}", method="PUT", headers={"Authorization": self._auth})
+        # 문자가 실패해도 SOS 동결은 그대로 진행돼야 하므로, 오류는 기록만 하고 넘깁니다.
+        try:
+            with urlopen(request, timeout=self.timeout) as response:
+                result = f"HTTP {response.status}"
+        except HTTPError as exc:
+            result = f"HTTP {exc.code}"
+        except (URLError, OSError) as exc:
+            result = f"연결 실패: {getattr(exc, 'reason', exc)}"
+        return IntegrationRecord("SMS", f"PUT /ari{path}", to, text, {"mode": "asterisk", "result": result})
 
 
 def build_sms_user_content(sender: str, body: str, first_pass: SmsVerdict) -> str:
@@ -986,4 +1018,9 @@ def make_gateways(settings: Settings) -> Gateways:
     else:
         llm = MockLlmGateway(model=settings.llm_model)
         stt = MockSttGateway(model=settings.stt_model)
-    return Gateways(llm=llm, stt=stt)
+    sms: SmsGateway = (
+        AsteriskSms(settings.asterisk_ari_url, settings.asterisk_ari_user, settings.asterisk_ari_password)
+        if settings.asterisk_ari_url
+        else MockSms()
+    )
+    return Gateways(sms=sms, llm=llm, stt=stt)

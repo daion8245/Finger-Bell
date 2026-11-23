@@ -186,7 +186,7 @@ flowchart TD
 
 앱은 서버의 가족 상태(`GET /api/v1/state`)를 그리고, 상태가 바뀌면 WebSocket(`/api/v1/ws`) 이벤트를 받아 다시 불러옵니다. 그래서 **휴대폰 여러 대**(어르신·보호자·시연 상대 기기)로도, 한 기기에서 핑거벨의 사용자를 바꿔 가며도 같은 흐름을 시연할 수 있습니다.
 
-외부 연동은 **모의 어댑터**입니다. 실제 API와 같은 형식의 호출 기록을 남기고(설정 › 서버 연동 기록), `backend/app/integrations.py`의 같은 메서드를 가진 클래스로 바꾸면 실제 연동이 됩니다.
+가족끼리 **인터넷 전화·문자**는 [Asterisk](https://github.com/asterisk/asterisk) 내선과 [sip_ua](https://pub.dev/packages/sip_ua)로 실제로 주고받습니다 (아래 "3. 가족 인터넷 전화·문자"). 그 밖의 외부 연동(오픈뱅킹·FCM, Asterisk를 연결하지 않았을 때의 SMS)은 **모의 어댑터**입니다. 실제 API와 같은 형식의 호출 기록을 남기고(설정 › 서버 연동 기록), `backend/app/integrations.py`의 같은 메서드를 가진 클래스로 바꾸면 실제 연동이 됩니다.
 
 ## 저장소 구조
 
@@ -199,7 +199,8 @@ backend/                    FastAPI 서버 · SQLite(기본)/PostgreSQL · AI FD
   app/domain/banking.py     적금 만기 전 해지 계산 · 대출 상품/상환 계산 · 확인 질문 · 주의 모드 종합 판정 1차 규칙
   app/domain/catalog.py     안심 모드 · 업종(MCC) · 시연 가맹점
   app/service.py            사건·주의 모드 · 문자 수신/판정 · 통화 세션/분석 · 송금/해지/대출 판정·보류 · 결제 제어 · SOS 동결 · 타이머
-  app/integrations.py       오픈뱅킹 · FCM · SMS (모의) · OpenRouter LLM · 음성인식(STT) 게이트웨이 (모의 + 실제)
+  app/integrations.py       오픈뱅킹 · FCM (모의) · SMS (Asterisk ARI 또는 모의) · OpenRouter LLM · 음성인식(STT) 게이트웨이 (모의 + 실제)
+asterisk/                   가족 인터넷 전화·문자 서버 (Docker · PJSIP WebSocket 내선 senior/child/guardian)
 packages/
   app/                      앱 3개 진입점(`main.dart`, `main_sms.dart`, `main_call.dart`) · `AppLinks` · `CompanionApp` · Android flavor/Provider/아이콘
   core/
@@ -210,14 +211,14 @@ packages/
     core_errors/            공통 Failure
   features/
     feature_sms/            iOS 메시지 앱 모양 문자 화면 재현 (최신순 대화 목록·말풍선·위험·주의 알림 띠·외부 링크 차단 화면·전화번호 발신 연결)
-    feature_call/           휴대폰 통화 화면 재현 (WebRTC 음성 통화·4초 조각 녹음·실시간 경고·시연 상대 화면)
+    feature_call/           휴대폰 통화 화면 재현 (WebRTC 음성 통화·4초 조각 녹음·실시간 경고·시연 상대 화면) · 가족 인터넷 전화·문자 (sip_ua → Asterisk)
     feature_sos/            흔들기 감지 · SOS 버튼 · 동결 화면
     feature_transfer/       AI 안심 점검·주의 확인·거래 보류·재확인 대기를 거치는 송금 시트
     feature_payment/        안심 모드를 따르는 결제 시트
     feature_guardian/       위험 근거 요약 · 위험 기록 · QR/코드 연결 및 동의 · 보류 해제·연장 · 주의 모드 해제 · 가족 통화 · 가족 관리
 ```
 
-기능 패키지는 서로 의존하지 않고 `core_*`에만 의존합니다. 기능끼리는 `packages/app`에서만 연결하며, 핑거벨 앱 코드는 `feature_sms`·`feature_call`을 쓰지 않고 `AppLinks`로만 문자·전화 앱을 엽니다.
+기능 패키지는 서로 의존하지 않고 `core_*`에만 의존합니다. 기능끼리는 `packages/app`에서만 연결하며, 핑거벨 앱 코드는 `feature_sms`·`feature_call`을 쓰지 않고 `AppLinks`로만 문자·전화 앱을 엽니다. 예외로 가족 인터넷 전화(`SipPhone`)는 핑거벨 앱이 직접 등록하고 걸려 온 전화·문자를 띄웁니다.
 
 ## 실행하기 (Windows)
 
@@ -255,6 +256,22 @@ adb shell pm list packages | findstr fingersnap
 IntelliJ에서 **FingerBell (Start Server)**로 서버를 시작하고 **FingerBell (Android)**로 세 앱을 설치할 수 있습니다. **FingerBell (Build APKs)**는 기기 연결 없이 debug APK 3개를 만들며, 앱별 **Debug** 구성은 Dart 중단점과 Hot Reload를 지원합니다. [IntelliJ 실행 방법](RUN_LOCAL.ko.md#intellij-idea--cursor--vs-code)을 참고하세요.
 
 자세한 실행 옵션과 문제 해결은 [RUN_LOCAL.ko.md](RUN_LOCAL.ko.md)에 있습니다.
+
+### 3. 가족 인터넷 전화·문자 (Asterisk)
+
+같은 Wi-Fi의 휴대폰끼리 핑거벨 앱으로 음성 통화와 문자를 주고받습니다. 앱은 고른 사용자(어르신 `senior` · 아이 `child` · 보호자 `guardian`)로 Asterisk에 등록하고, 설정 › **가족 연락**으로 겁니다. 걸려 온 전화는 어느 화면에서든 받기/거절 창이 뜹니다.
+
+```powershell
+.\run-asterisk.ps1
+```
+
+[Docker Desktop](https://www.docker.com/products/docker-desktop/)이 필요합니다. 이 PC의 Wi-Fi IP를 찾아 Asterisk를 켭니다 (Windows 방화벽이 물으면 8088/tcp, 10000-10049/udp 허용). SOS 문자도 보호자 앱으로 보내려면 백엔드를 이렇게 켭니다 (없으면 모의 문자):
+
+```powershell
+$env:FINGERBELL_ASTERISK_ARI = 'http://127.0.0.1:8088/ari'; .\run-backend.ps1 -Lan
+```
+
+휴대폰 앱을 `FINGERBELL_API_URL=http://<PC IP>:8765`로 실행하면 같은 PC의 `ws://<PC IP>:8088/ws`로 등록합니다 (다른 주소는 `--dart-define=FINGERBELL_SIP_URL=...`). `run-android.ps1`은 `adb reverse tcp:8088`도 함께 겁니다. 한 사용자는 마지막으로 그 사용자를 고른 기기 하나에서 받습니다. 내선 비밀번호는 시연용(`fingerbell-demo`)이니 같은 Wi-Fi 안에서만 쓰세요.
 
 ## 지금 시연할 수 있는 시나리오
 
